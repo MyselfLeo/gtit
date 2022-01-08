@@ -23,13 +23,13 @@ def main():
     arguments = sys.argv[1:]
 
     if len(arguments) == 0:
-        print("ERROR: No arguments provided.")
+        print("ERROR: No arguments provided.\n")
         usage()
         return
 
     mode = arguments[0]
     if not mode in AVAILABLE_MODES:
-        print("ERROR: Invalid mode.")
+        print("ERROR: Invalid mode.\n")
         usage()
         return
 
@@ -53,7 +53,8 @@ def main():
 
         # Get the options
         for arg in arguments[1:]:
-            if arg.startswith('-'): options += arg[1:]
+            if arg.startswith('-'):
+                for c in arg[1:]: options.append(c)
             else: filepath = arg
 
 

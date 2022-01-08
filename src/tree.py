@@ -145,15 +145,17 @@ class Tree:
         pass
 
 
+
     def get_individuals_list(self) -> str:
         """Return a list of all individual names in this tree, as a str."""
         res: str = ""
 
         for item in self.items:
             if item.identifier == 'INDI':
-                res += item.get_children("NAME").get_value() + '\n'
+                res += str(item) + '\n'
 
-        return res.rstrip()
+        return res
+
 
 
     def get_families_list(self) -> str:
@@ -169,8 +171,8 @@ class Tree:
                 # Count the number of children
                 nb_children: int = 0
                 for child_item in item.children:
-                    if isinstance(child_item.get_real_value(), Node):
-                        nb_children += child_item.get_real_value().identifier == 'CHIL'
+                    if isinstance(child_item.get_value(), Node):
+                        nb_children += child_item.get_value().identifier == 'CHIL'
 
                 # Get each children node that is a HUSB or a WIFE node
                 for child_item in item.children:
@@ -181,4 +183,4 @@ class Tree:
 
                 res += f"{nb_children} children\n"
 
-        return res.rstrip()
+        return res

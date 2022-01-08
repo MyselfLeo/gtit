@@ -8,6 +8,12 @@ class Node:
     _referenced_node: 'Node' = None # The node referenced by the value, if any
 
 
+    def __str__(self) -> str:
+        if self.identifier == 'INDI':
+            return f"{self.get_value('NAME')}"
+
+
+
     def add_child(self, child: 'Node') -> None:
         self.children.append(child)
 
@@ -60,5 +66,5 @@ class Node:
             else: return None
 
         if self.value == '': return self.value
-        if self.value[0] == self.value[-1] == '@': return self._referenced_node.get_value()
+        if self.value[0] == self.value[-1] == '@': return self._referenced_node
         return self.value
