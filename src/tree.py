@@ -138,12 +138,22 @@ class Tree:
             item.link_references(self.references)
 
 
+    
+    def get_items(self, item_id: str) -> 'list[Node]':
+        """Return a list of items with the given identifier."""
+        return [item for item in self.items if item.identifier == item_id]
 
+
+
+
+
+
+
+'''
     def get_stats(self) -> str:
         """Return a list of statistics from this tree, as a str."""
         # TODO: Implement this method
         pass
-
 
 
     def get_individuals_list(self) -> str:
@@ -184,3 +194,4 @@ class Tree:
                 res += f"{nb_children} children\n"
 
         return res
+'''
