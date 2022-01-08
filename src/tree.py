@@ -9,6 +9,9 @@ class Tree:
     # Tree metadatas
     items: 'list[Node]' = []
 
+    # Reference dictionary
+    references = {}
+
 
 
 
@@ -47,15 +50,54 @@ class Tree:
 
 
 
-    def hierarchy_to_node(self, hierarchy) -> None:
+    def hierarchy_to_nodes(self, hierarchy) -> 'list[Node]':
         """
         Take a generated hierarchy (as a dict, coming from the divide_into_sub_blocks method)
-        and convert it into multiple nodes that will be placed in the items list.
+        and convert it into multiple nodes.
 
         This method works recursively.
         """
+        nodes: list[Node] = []
+
+
+        for key in hierarchy:
+            node: Node = Node()
+
+            # Get information about the node from the key
+            node_values: list[str] = key.split(' ')
+            if len(node_values) < 3:
+                node_values += [''] * (3 - len(node_values))
+
+            node.level = int(node_values[0])
+
+            if node_values[1][0] == node_values[1][-1] == '@': # If the first information is a reference, this node wont have a value
+                node.reference = node_values[1]
+                node.identifier = node_values[2]
+
+            else:                                              # Else, the node has an identifier and a value
+                node.identifier = node_values[1]
+                node.value = node_values[2]
+
+            # Get the children of the node, if any (children are in the hierarchy[key] dict)
+            if hierarchy[key] != '':
+                node.children = self.hierarchy_to_nodes(hierarchy[key])
+
+            nodes.append(node)
+
+
+        return nodes
         
 
+
+    def find_references(self) -> None:
+        """
+        Iterate over each of the item of the tree and find references.
+        """
+
+        for item in self.items:
+            if item.reference != '':
+                self.references[item.reference] = item
+        
     
     
 
@@ -86,6 +128,14 @@ class Tree:
 
 
         hierachy: dict = Tree.divide_into_sub_blocks(file)
+        self.items = self.hierarchy_to_nodes(hierachy)
+
+        # Find references
+        self.find_references()
+
+        # Link references
+        for item in self.items:
+            item.link_references(self.references)
 
 
 
@@ -101,6 +151,34 @@ class Tree:
 
         for item in self.items:
             if item.identifier == 'INDI':
-                res += item.get_children("NAME").value + '\n'
+                res += item.get_children("NAME").get_value() + '\n'
 
-        return res
+        return res.rstrip()
+
+
+    def get_families_list(self) -> str:
+        """Return a list of all family in this tree, as a str.
+        Families are identified by the name of the husband and the name of the wife.
+        """
+
+        res: str = ""
+
+        for item in self.items:
+            if item.identifier == 'FAM':
+
+                # Count the number of children
+                nb_children: int = 0
+                for child_item in item.children:
+                    if isinstance(child_item.get_real_value(), Node):
+                        nb_children += child_item.get_real_value().identifier == 'CHIL'
+
+                # Get each children node that is a HUSB or a WIFE node
+                for child_item in item.children:
+                    if child_item.identifier in ['HUSB', 'WIFE']:
+                        individual: Node = child_item._referenced_node
+
+                        res += f"{individual.get_value('NAME')}, "
+
+                res += f"{nb_children} children\n"
+
+        return res.rstrip()

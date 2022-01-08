@@ -16,6 +16,7 @@ def usage():
     print("")
     print("OPTIONS:")
     print("    -i           Only show information about individuals")
+    print("    -f           Only show information about families")
 
 
 def main():
@@ -50,12 +51,21 @@ def main():
         options: str = []
         filepath: str = ""
 
+        # Get the options
         for arg in arguments[1:]:
             if arg.startswith('-'): options += arg[1:]
             else: filepath = arg
 
-            if 'i' in options:
-                print(tree.get_individuals_list())
+
+        # Act depending on the options
+        if 'i' in options:
+            print(f"INDIVIDUALS IN {filepath}:")
+            print(tree.get_individuals_list())
+
+        # Act depending on the options
+        if 'f' in options:
+            print(f"FAMILIES IN {filepath}:")
+            print(tree.get_families_list())
 
 
 
