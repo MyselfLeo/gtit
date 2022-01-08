@@ -188,6 +188,6 @@ def draw(tree: dict, width: int) -> str:
     # Print the lines
     txt = ""
     for i in range(len(lines) - 1, -1, -1):
-        txt += lines[i] + "\n"
+        txt += lines[i].rstrip() + "\n"
 
     return txt
