@@ -11,73 +11,53 @@ class Tree:
 
 
 
-    def parse_block(self, block: str) -> Node:
-        """Parse the block recursively and return a Node object.
-        This node object is the root of the block.
 
-        Args:
-            block (str): A block of the .GED file.
-
-        Return:
-            Node: The root of the block. This Node object has other Node objects as children.
+    @staticmethod
+    def divide_into_sub_blocks(block: str):
+        """Take given block and divide it into a hierarchy in the
+        form of a dictionary.
         """
-
-        # Create a new node
-        node: Node = Node()
-
-        # Remove last newline
-        block = block.rstrip()
-
-
-        # Read the first line of the block (the block information) ######################################
-        line: str = block.split('\n')[0]
-        line_informations = line.split(' ')
-        node.level = int(line_informations[0])
-
-        # Add the reference if it exists, and the identifier
-        info = line_informations[1]
-
-        if info[0] == info[-1] == '@':                  # first info is reference => ref + id
-            node.reference = info[1:-1]
-            node.identifier = line_informations[2]
-
-        else:                                           # first info is id => id + value
-            node.identifier = info
-            node.value = ' '.join(line_informations[2:])
-
-        
-        # Read the other lines of the block (the block children) ########################################
-        subblock: str = ""
-        subblock_base_lvl: int = None
-
+        block_lvl: int = int(block[0])
+        sub_blocks = {}
+        first_line = block.split('\n')[0]
+        sub_block: str = ""
 
         for line in block.split('\n')[1:]:
 
-            # Skip empty lines
-            if line.rstrip() == "": continue
+            # Skips empty lines
+            if line == '': continue
 
             line_lvl: int = int(line.split(' ')[0])
 
-            if subblock_base_lvl == None:
-                subblock_base_lvl = line_lvl
-                subblock += line + '\n'
-
-            elif line_lvl > subblock_base_lvl:
-                subblock += line + '\n'
+            if line_lvl > block_lvl:
+                sub_block += line + '\n'
 
             else:
-                node.add_child(self.parse_block(subblock))
-                subblock = ""
-                subblock_base_lvl = None
+                sub_blocks[first_line] = sub_block
+                sub_block = ""
+                first_line = line
+
+        sub_blocks[first_line] = sub_block
+
+        for key in sub_blocks:
+            if not sub_blocks[key] == '':
+                sub_blocks[key] = Tree.divide_into_sub_blocks(sub_blocks[key])
+
+        return sub_blocks
 
 
-        # Return the node
-        return node
 
+    def hierarchy_to_node(self, hierarchy) -> None:
+        """
+        Take a generated hierarchy (as a dict, coming from the divide_into_sub_blocks method)
+        and convert it into multiple nodes that will be placed in the items list.
+
+        This method works recursively.
+        """
         
 
-
-
+    
+    
 
     def parse(self, filepath: str) -> None:
         """
@@ -98,40 +78,29 @@ class Tree:
 
         # Open the file
         with open(filepath, 'r', encoding = 'utf-8-sig') as f:
-            file: str = f.readlines()
+            file: str = f.read()
 
         # Check for the validity of the file
-        if not file[0].startswith('0 HEAD'):
+        if not file.startswith('0 HEAD'):
             raise Exception(f"The file {filepath} is not a valid .GED file.")
 
 
-        subblock: str = file[0]
-        correct_stop: bool = False
-
-        for line in file[1:]:
-            # Stop parsing when the end of the file is reached
-            if line.startswith('0 TRLR'):
-                correct_stop = True 
-                self.items.append(self.parse_block(subblock))
-                break
+        hierachy: dict = Tree.divide_into_sub_blocks(file)
 
 
-            # Skip empty lines
-            if line == '\n': continue
 
-            line_lvl: int = int(line.split(' ')[0])
-
-            # If the line is in a sub-block of the main block (the file), add it to the sub-block buffer
-            if line_lvl > 0:
-                subblock += line
-
-            # If not, then the line is the start of a new sub-block, so add the previous sub-block to the list
-            # and add the start of the new sub-block to the subblock buffer
-            else:
-                self.items.append(self.parse_block(subblock))
-                subblock = line
+    def get_stats(self) -> str:
+        """Return a list of statistics from this tree, as a str."""
+        # TODO: Implement this method
+        pass
 
 
-        # Check if the file has been parsed correctly
-        if not correct_stop:
-            raise Warning(f"The file {filepath} may not have been parsed correctly.")
+    def get_individuals_list(self) -> str:
+        """Return a list of all individual names in this tree, as a str."""
+        res: str = ""
+
+        for item in self.items:
+            if item.identifier == 'INDI':
+                res += item.get_children("NAME").value + '\n'
+
+        return res
