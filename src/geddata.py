@@ -80,7 +80,7 @@ class GEDData:
 
             else:                                              # Else, the item has an identifier and a value
                 item.identifier = item_values[1]
-                item.value = item_values[2]
+                item.value = ' '.join(item_values[2:])
 
             # Get the children of the item, if any (children are in the hierarchy[key] dict)
             if hierarchy[key] != '':

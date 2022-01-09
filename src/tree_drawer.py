@@ -58,15 +58,20 @@ def words_line(words: 'list[str]', width: int, centers: 'list[int]') -> str:
 
 
 
-def name_line(names: 'list[str]', width: int, centers: 'list[int]') -> str:
+def name_line(names: 'list[dict]', width: int, centers: 'list[int]') -> str:
     """Return a 2 line string displaying firstname and lastname
     of each person in names, evenly spaced.
     """
 
     assert len(names) == len(centers), "The number of names and the number of centers must be the same."
 
-    return words_line(names, width, centers) #+ "\n" + words_line(last_names, width, centers)
+    first_names: list[str] = []
+    last_names: list[str] = []
+    for n in names:
+        first_names.append(n['first_name'])
+        last_names.append(n['last_name'])
 
+    return words_line(first_names, width, centers) + '\n' + words_line(last_names, width, centers)
 
 
 
@@ -174,7 +179,7 @@ def draw(root: Individual, width: int) -> str:
         flat_target_points: list[int] = get_spaced_points(2 ** (d + 1), width)
         target_points: list[list[int]] = [flat_target_points[i:i + 2] for i in range(0, len(flat_target_points), 2)]
 
-        source_names: list[str] = root.get_individuals_names(d)
+        source_names: list[dict] = root.get_individuals_names(d)
         lines.append(name_line(source_names, width, source_centers))
         lines.append(connecting_lines(source_centers, target_points, width))
 

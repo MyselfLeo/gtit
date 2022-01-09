@@ -1,5 +1,6 @@
 import sys
 from geddata import GEDData
+from item import Item
 from genealogy import Individual
 from tree_drawer import *
 
@@ -60,15 +61,19 @@ def main():
             else: filepath = arg
 
 
-        # Act depending on the options
-        if 'i' in options:
-            print(f"INDIVIDUALS IN {filepath}:")
-            print(geddata.get_individuals_list())
 
         # Act depending on the options
-        if 'f' in options:
-            print(f"FAMILIES IN {filepath}:")
-            print(geddata.get_families_list())
+        if 'i' in options:
+            individual_list: 'list[Item]' = geddata.get_items('INDI')
+
+            txt: str = ""
+
+            for i, individual in enumerate(individual_list):
+                txt += "%-8i %-30s %-20s\n" % (i, individual.get_value('NAME').replace('/', ''), individual.get_child('BIRT').get_value('DATE'))
+
+            print("%-8s %-30s %-20s" % ("id", "name", "birth date"))
+            print(txt)
+
 
 
 

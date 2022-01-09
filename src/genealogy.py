@@ -11,7 +11,8 @@ class Individual:
     """
     generation: int = 0
 
-    name: str = None
+    first_name: str = None # In the form first name /last name/
+    last_name: str = None
     surname: str = None
     given_name: str = None
 
@@ -36,7 +37,11 @@ class Individual:
 
         self.generation = generation
 
-        self.name = item.get_value('NAME')
+        self._raw_name = item.get_value('NAME')
+        self.first_name = self._raw_name.split('/')[0]
+        self.last_name = self._raw_name.split('/')[1]
+
+
         self.surname = item.get_value('SURN')
         self.given_name = item.get_value('GIVN')
 
@@ -102,10 +107,10 @@ class Individual:
         """
         names = []
 
-        if generation == 0: return [self.name]
+        if generation == 0: return [{'first_name': self.first_name, 'last_name': self.last_name}]
         elif generation == 1:
-            if self.father: names += [self.father.name]
-            if self.mother: names += [self.mother.name]
+            if self.father: names += [{'first_name': self.father.first_name, 'last_name': self.father.last_name}]
+            if self.mother: names += [{'first_name': self.mother.first_name, 'last_name': self.mother.last_name}]
             return names
 
         else:
