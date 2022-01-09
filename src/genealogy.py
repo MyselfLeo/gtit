@@ -98,6 +98,7 @@ class Individual:
 
 
 
+
     def get_individuals_names(self, generation: int) -> 'list[str]':
         """
         Return a list of every name in the given generation.

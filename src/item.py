@@ -85,7 +85,7 @@ class Item:
 
         # Case specific for hr format
         if hr:
-            if self.identifier == 'NAME': return self.value.replace('/', '')
+            if self.identifier == 'NAME': return self.value.replace('/', '').strip()
         
         # Non specific case, return raw value
         return self.value

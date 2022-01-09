@@ -33,9 +33,13 @@ def list(ged_data: GEDData, individuals: bool) -> None:
         txt: str = ""
 
         for i, individual in enumerate(individual_list):
-            txt += "%-8i %-30s %-20s\n" % (i, individual.get_value('NAME').replace('/', ''), individual.get_child('BIRT').get_value('DATE'))
+            birth: str = ""
+            try: birth = individual.get_child('BIRT').get_value('DATE')
+            except: pass
 
-        print("%-8s %-30s %-20s" % ("id", "name", "birth date"))
+            txt += "%-10i %-50s %-20s\n" % (i, individual.get_value('NAME').replace('/', ''), birth)
+
+        print("%-10s %-50s %-20s" % ("id", "name", "birth date"))
         print(txt)
 
 
@@ -81,7 +85,7 @@ def tree(ged_data: GEDData, root_name: str, depth: int) -> None:
     if used_depth == -1:
         print("Could not draw the tree. Verify your arguments.")
         exit(1)
-        
+
     exit(0)
 
 
