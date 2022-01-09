@@ -10,7 +10,7 @@ class GEDData:
     in the generations.
     """
 
-    # Tree items
+    # GEDData items
     items: 'list[Item]' = []
 
     # Reference dictionary
@@ -48,7 +48,7 @@ class GEDData:
 
         for key in sub_blocks:
             if not sub_blocks[key] == '':
-                sub_blocks[key] = Tree.divide_into_sub_blocks(sub_blocks[key])
+                sub_blocks[key] = GEDData.divide_into_sub_blocks(sub_blocks[key])
 
         return sub_blocks
 
@@ -131,7 +131,7 @@ class GEDData:
             raise Exception(f"The file {filepath} is not a valid .GED file.")
 
 
-        hierachy: dict = Tree.divide_into_sub_blocks(file)
+        hierachy: dict = GEDData.divide_into_sub_blocks(file)
         self.items = self.hierarchy_to_items(hierachy)
 
         # Find references
