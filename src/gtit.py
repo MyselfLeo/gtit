@@ -78,17 +78,20 @@ def main():
 
 
     if mode == "tree":
-        options: str = []
-        filepath: str = ""
+        name: str = arguments[1]
+        filepath: str = arguments[2]
 
-        # Get the options
-        for arg in arguments[1:]:
-            if arg.startswith('-'):
-                for c in arg[1:]: options.append(c)
-            else: filepath = arg
+        root: list[Item] = geddata.find_items('INDI', {"NAME": name})
 
+        if len(root) == 0:
+            print("ERROR: Could not find the individual with the name '" + name + "'.")
+            return
 
-        # TODO: Get the root from the option, then draw the tree
+        root = Individual(root[0])
+        tree: str = draw(root, 150)
+        print('\n\n')
+        print(tree)
+        print('\n\n')
 
         
 

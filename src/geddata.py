@@ -149,6 +149,25 @@ class GEDData:
 
 
 
+    def find_items(self, item_id: str, item_filters: 'list[dict]' = []) -> 'list[Item]':
+        """Return every items that meet the specified requirements.
+
+        An example of item filter can be: {"NAME": "John Doe"}
+        """
+        returned_items: 'list[Item]' = self.get_items(item_id)
+        items: 'list[Item]' = []
+
+        for filter in item_filters:
+            items = returned_items
+            returned_items = []
+
+            for item in items:
+                if item.get_value(filter, True) == item_filters[filter]:
+                    returned_items.append(item)
+
+        return returned_items
+
+
 
 
 

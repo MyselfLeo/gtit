@@ -56,7 +56,7 @@ class Item:
 
 
 
-    def get_value(self, value_id: str = None):
+    def get_value(self, value_id: str = None, hr: bool = False) -> str:
         """Return the requested value.
 
         If value_id is not given, this method will return the value of this item.
@@ -68,6 +68,8 @@ class Item:
 
         Args:
             value_id (str): The identifier of the child item to return.
+            hr (bool): If True, the returned value will be in human-readable format.
+                       In example, if the value_id is NAME, the returned value won't have the '/' character.
 
         Returns:
             The value of the child item with value_id as identifier if it exists.
@@ -75,9 +77,15 @@ class Item:
         """
         if value_id:
             child = self.get_child(value_id)
-            if child: return child.get_value()
+            if child: return child.get_value(hr=hr)
             else: return None
 
-        if self.value == '': return self.value
-        if self.value[0] == self.value[-1] == '@': return self._referenced_item
+        if self.value != '':
+            if self.value[0] == self.value[-1] == '@': return self._referenced_item
+
+        # Case specific for hr format
+        if hr:
+            if self.identifier == 'NAME': return self.value.replace('/', '')
+        
+        # Non specific case, return raw value
         return self.value

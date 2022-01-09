@@ -63,7 +63,7 @@ def name_line(names: 'list[dict]', width: int, centers: 'list[int]') -> str:
     of each person in names, evenly spaced.
     """
 
-    assert len(names) == len(centers), "The number of names and the number of centers must be the same."
+    assert len(names) == len(centers), f"The number of names {len(names)} and the number of centers {len(centers)} must be the same."
 
     first_names: list[str] = []
     last_names: list[str] = []
@@ -174,7 +174,9 @@ def draw(root: Individual, width: int) -> str:
     
     lines = []
 
-    for d in MAX_DEPTH:
+    # Add d layers
+    for d in range(MAX_DEPTH):
+
         source_centers: list[int] = get_spaced_points(2 ** d, width)
         flat_target_points: list[int] = get_spaced_points(2 ** (d + 1), width)
         target_points: list[list[int]] = [flat_target_points[i:i + 2] for i in range(0, len(flat_target_points), 2)]
@@ -182,6 +184,13 @@ def draw(root: Individual, width: int) -> str:
         source_names: list[dict] = root.get_individuals_names(d)
         lines.append(name_line(source_names, width, source_centers))
         lines.append(connecting_lines(source_centers, target_points, width))
+
+    # Add the final layers, the names of the d generation
+
+    source_centers: list[int] = get_spaced_points(2 ** MAX_DEPTH, width)
+    source_names: list[dict] = root.get_individuals_names(MAX_DEPTH)
+    lines.append(name_line(source_names, width, source_centers))
+
 
     
     # Reverse the line list

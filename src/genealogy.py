@@ -48,12 +48,14 @@ class Individual:
         self.sex = item.get_value('SEX')
 
         birth_item: Item = item.get_child('BIRT')
-        self.birth_date = birth_item.get_value('DATE')
-        self.birth_place = birth_item.get_value('PLAC')
+        if birth_item:
+            self.birth_date = birth_item.get_value('DATE')
+            self.birth_place = birth_item.get_value('PLAC')
 
         death_item: Item = item.get_child('DEAT')
-        self.death_date = death_item.get_value('DATE')
-        self.death_place = death_item.get_value('PLAC')
+        if death_item:
+            self.death_date = death_item.get_value('DATE')
+            self.death_place = death_item.get_value('PLAC')
 
         # Look for a family where this individual is the child
         family_item = item.get_value('FAMC')
@@ -95,6 +97,7 @@ class Individual:
             return individual_count
 
 
+
     def get_individuals_names(self, generation: int) -> 'list[str]':
         """
         Return a list of every name in the given generation.
@@ -110,10 +113,14 @@ class Individual:
         if generation == 0: return [{'first_name': self.first_name, 'last_name': self.last_name}]
         elif generation == 1:
             if self.father: names += [{'first_name': self.father.first_name, 'last_name': self.father.last_name}]
+            else: names += [{'first_name': '???', 'last_name': '???'}]
             if self.mother: names += [{'first_name': self.mother.first_name, 'last_name': self.mother.last_name}]
+            else: names += [{'first_name': '???', 'last_name': '???'}]
             return names
 
         else:
             if self.father: names += self.father.get_individuals_names(generation - 1)
+            else: names += [{'first_name': '???', 'last_name': '???'}, {'first_name': '???', 'last_name': '???'}]
             if self.mother: names += self.mother.get_individuals_names(generation - 1)
+            else: names += [{'first_name': '???', 'last_name': '???'}, {'first_name': '???', 'last_name': '???'}]
             return names
