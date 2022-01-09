@@ -1,13 +1,17 @@
-from node import Node
+from item import Item
 
-class Tree:
-    """Represent a genealogical tree.
+class GEDData:
+    """Represent all the informations contained in a .GED file.
 
-    A genealogical tree is made of a root node and multiple informations about the tree.
+    Like a .GED file, it is composed of a succession of items (Individuals, Families, Notes, etc.) that
+    are linked together.
+
+    This class can then generate a genealogical tree, starting from an Individual Item and making its way up
+    in the generations.
     """
 
-    # Tree metadatas
-    items: 'list[Node]' = []
+    # Tree items
+    items: 'list[Item]' = []
 
     # Reference dictionary
     references = {}
@@ -50,42 +54,42 @@ class Tree:
 
 
 
-    def hierarchy_to_nodes(self, hierarchy) -> 'list[Node]':
+    def hierarchy_to_items(self, hierarchy) -> 'list[Item]':
         """
         Take a generated hierarchy (as a dict, coming from the divide_into_sub_blocks method)
-        and convert it into multiple nodes.
+        and convert it into multiple items.
 
         This method works recursively.
         """
-        nodes: list[Node] = []
+        items: list[Item] = []
 
 
         for key in hierarchy:
-            node: Node = Node()
+            item: Item = Item()
 
-            # Get information about the node from the key
-            node_values: list[str] = key.split(' ')
-            if len(node_values) < 3:
-                node_values += [''] * (3 - len(node_values))
+            # Get information about the item from the key
+            item_values: list[str] = key.split(' ')
+            if len(item_values) < 3:
+                item_values += [''] * (3 - len(item_values))
 
-            node.level = int(node_values[0])
+            item.level = int(item_values[0])
 
-            if node_values[1][0] == node_values[1][-1] == '@': # If the first information is a reference, this node wont have a value
-                node.reference = node_values[1]
-                node.identifier = node_values[2]
+            if item_values[1][0] == item_values[1][-1] == '@': # If the first information is a reference, this item wont have a value
+                item.reference = item_values[1]
+                item.identifier = item_values[2]
 
-            else:                                              # Else, the node has an identifier and a value
-                node.identifier = node_values[1]
-                node.value = node_values[2]
+            else:                                              # Else, the item has an identifier and a value
+                item.identifier = item_values[1]
+                item.value = item_values[2]
 
-            # Get the children of the node, if any (children are in the hierarchy[key] dict)
+            # Get the children of the item, if any (children are in the hierarchy[key] dict)
             if hierarchy[key] != '':
-                node.children = self.hierarchy_to_nodes(hierarchy[key])
+                item.children = self.hierarchy_to_items(hierarchy[key])
 
-            nodes.append(node)
+            items.append(item)
 
 
-        return nodes
+        return items
         
 
 
@@ -105,8 +109,8 @@ class Tree:
         """
         Parse the .GED file.
 
-        For each block of the .GED file, a Node object is created and added to the items list.
-        Each item is a Node object.
+        For each block of the .GED file, a Item object is created and added to the items list.
+        Each item is a Item object.
         
         Args:
             filepath (str): The path of the .GED file.
@@ -128,7 +132,7 @@ class Tree:
 
 
         hierachy: dict = Tree.divide_into_sub_blocks(file)
-        self.items = self.hierarchy_to_nodes(hierachy)
+        self.items = self.hierarchy_to_items(hierachy)
 
         # Find references
         self.find_references()
@@ -139,7 +143,7 @@ class Tree:
 
 
     
-    def get_items(self, item_id: str) -> 'list[Node]':
+    def get_items(self, item_id: str) -> 'list[Item]':
         """Return a list of items with the given identifier."""
         return [item for item in self.items if item.identifier == item_id]
 
@@ -181,13 +185,13 @@ class Tree:
                 # Count the number of children
                 nb_children: int = 0
                 for child_item in item.children:
-                    if isinstance(child_item.get_value(), Node):
+                    if isinstance(child_item.get_value(), Item):
                         nb_children += child_item.get_value().identifier == 'CHIL'
 
-                # Get each children node that is a HUSB or a WIFE node
+                # Get each children item that is a HUSB or a WIFE item
                 for child_item in item.children:
                     if child_item.identifier in ['HUSB', 'WIFE']:
-                        individual: Node = child_item._referenced_node
+                        individual: Item = child_item._referenced_item
 
                         res += f"{individual.get_value('NAME')}, "
 
