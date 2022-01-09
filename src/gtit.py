@@ -1,5 +1,5 @@
 import sys
-from tree import Tree
+from geddata import GEDData
 
 
 
@@ -37,7 +37,7 @@ def main():
 
     # Load the .GED file
     try:
-        tree = Tree()
+        tree = GEDData()
         tree.parse(arguments[-1])
 
     except Exception as e:
