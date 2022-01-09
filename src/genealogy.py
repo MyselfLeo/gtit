@@ -61,6 +61,7 @@ class Individual:
             if mother_item: self.mother = Individual(mother_item, self.generation + 1)
 
 
+
     
     def get_nb_individuals(self, generation: int) -> int:
         """
@@ -87,3 +88,27 @@ class Individual:
             if self.father: individual_count += self.father.get_nb_individuals(generation - 1)
             if self.mother: individual_count += self.mother.get_nb_individuals(generation - 1)
             return individual_count
+
+
+    def get_individuals_names(self, generation: int) -> 'list[str]':
+        """
+        Return a list of every name in the given generation.
+
+        Args:
+            generation (int): the generation offset starting from the root.
+
+        Returns:
+            The list of every name in the given generation.
+        """
+        names = []
+
+        if generation == 0: return [self.name]
+        elif generation == 1:
+            if self.father: names += [self.father.name]
+            if self.mother: names += [self.mother.name]
+            return names
+
+        else:
+            if self.father: names += self.father.get_individuals_names(generation - 1)
+            if self.mother: names += self.mother.get_individuals_names(generation - 1)
+            return names

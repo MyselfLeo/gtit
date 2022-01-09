@@ -1,5 +1,7 @@
 import sys
 from geddata import GEDData
+from genealogy import Individual
+from tree_drawer import *
 
 
 
@@ -37,8 +39,8 @@ def main():
 
     # Load the .GED file
     try:
-        tree = GEDData()
-        tree.parse(arguments[-1])
+        geddata = GEDData()
+        geddata.parse(arguments[-1])
 
     except Exception as e:
         print("ERROR: Could not load file.")
@@ -61,13 +63,29 @@ def main():
         # Act depending on the options
         if 'i' in options:
             print(f"INDIVIDUALS IN {filepath}:")
-            print(tree.get_individuals_list())
+            print(geddata.get_individuals_list())
 
         # Act depending on the options
         if 'f' in options:
             print(f"FAMILIES IN {filepath}:")
-            print(tree.get_families_list())
+            print(geddata.get_families_list())
 
+
+
+    if mode == "tree":
+        options: str = []
+        filepath: str = ""
+
+        # Get the options
+        for arg in arguments[1:]:
+            if arg.startswith('-'):
+                for c in arg[1:]: options.append(c)
+            else: filepath = arg
+
+
+        # TODO: Get the root from the option, then draw the tree
+
+        
 
 
 

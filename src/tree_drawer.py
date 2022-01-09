@@ -58,17 +58,14 @@ def words_line(words: 'list[str]', width: int, centers: 'list[int]') -> str:
 
 
 
-def name_line(names: 'list[dict]', width: int, centers: 'list[int]') -> str:
+def name_line(names: 'list[str]', width: int, centers: 'list[int]') -> str:
     """Return a 2 line string displaying firstname and lastname
     of each person in names, evenly spaced.
     """
 
     assert len(names) == len(centers), "The number of names and the number of centers must be the same."
 
-    first_names = [name['name'] for name in names]
-    last_names = [name['lastname'] for name in names]
-
-    return words_line(first_names, width, centers) + "\n" + words_line(last_names, width, centers)
+    return words_line(names, width, centers) #+ "\n" + words_line(last_names, width, centers)
 
 
 
@@ -170,3 +167,19 @@ def draw(root: Individual, width: int) -> str:
     MAX_DEPTH: int = 3
 
     
+    lines = []
+
+    for d in MAX_DEPTH:
+        source_centers: list[int] = get_spaced_points(2 ** d, width)
+        flat_target_points: list[int] = get_spaced_points(2 ** (d + 1), width)
+        target_points: list[list[int]] = [flat_target_points[i:i + 2] for i in range(0, len(flat_target_points), 2)]
+
+        source_names: list[str] = root.get_individuals_names(d)
+        lines.append(name_line(source_names, width, source_centers))
+        lines.append(connecting_lines(source_centers, target_points, width))
+
+    
+    # Reverse the line list
+    lines.reverse()
+    # Return the lines, as string
+    return '\n'.join(lines)
