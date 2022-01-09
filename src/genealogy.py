@@ -120,7 +120,15 @@ class Individual:
 
         else:
             if self.father: names += self.father.get_individuals_names(generation - 1)
-            else: names += [{'first_name': '???', 'last_name': '???'}, {'first_name': '???', 'last_name': '???'}]
+            else:
+                names += [{'first_name': '???', 'last_name': '???'}, {'first_name': '???', 'last_name': '???'}]
             if self.mother: names += self.mother.get_individuals_names(generation - 1)
             else: names += [{'first_name': '???', 'last_name': '???'}, {'first_name': '???', 'last_name': '???'}]
+            
+            # Check if the nb of names is the one expected
+            expected_nb_names: int = 2 ** (generation)
+
+            if len(names) != expected_nb_names:
+                raise ValueError("Can't go back to this generation.")
+
             return names

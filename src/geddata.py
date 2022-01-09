@@ -10,6 +10,9 @@ class GEDData:
     in the generations.
     """
 
+    # File path
+    filepath: str = ''
+
     # GEDData items
     items: 'list[Item]' = []
 
@@ -121,7 +124,6 @@ class GEDData:
             Warning: If the file does not look valid, but parsing is not stopped.
         """
 
-
         # Open the file
         with open(filepath, 'r', encoding = 'utf-8-sig') as f:
             file: str = f.read()
@@ -130,6 +132,7 @@ class GEDData:
         if not file.startswith('0 HEAD'):
             raise Exception(f"The file {filepath} is not a valid .GED file.")
 
+        self.filepath = filepath
 
         hierachy: dict = GEDData.divide_into_sub_blocks(file)
         self.items = self.hierarchy_to_items(hierachy)
@@ -166,55 +169,3 @@ class GEDData:
                     returned_items.append(item)
 
         return returned_items
-
-
-
-
-
-
-'''
-    def get_stats(self) -> str:
-        """Return a list of statistics from this tree, as a str."""
-        # TODO: Implement this method
-        pass
-
-
-    def get_individuals_list(self) -> str:
-        """Return a list of all individual names in this tree, as a str."""
-        res: str = ""
-
-        for item in self.items:
-            if item.identifier == 'INDI':
-                res += str(item) + '\n'
-
-        return res
-
-
-
-    def get_families_list(self) -> str:
-        """Return a list of all family in this tree, as a str.
-        Families are identified by the name of the husband and the name of the wife.
-        """
-
-        res: str = ""
-
-        for item in self.items:
-            if item.identifier == 'FAM':
-
-                # Count the number of children
-                nb_children: int = 0
-                for child_item in item.children:
-                    if isinstance(child_item.get_value(), Item):
-                        nb_children += child_item.get_value().identifier == 'CHIL'
-
-                # Get each children item that is a HUSB or a WIFE item
-                for child_item in item.children:
-                    if child_item.identifier in ['HUSB', 'WIFE']:
-                        individual: Item = child_item._referenced_item
-
-                        res += f"{individual.get_value('NAME')}, "
-
-                res += f"{nb_children} children\n"
-
-        return res
-'''

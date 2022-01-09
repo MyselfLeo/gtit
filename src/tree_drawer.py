@@ -58,6 +58,7 @@ def words_line(words: 'list[str]', width: int, centers: 'list[int]') -> str:
 
 
 
+
 def name_line(names: 'list[dict]', width: int, centers: 'list[int]') -> str:
     """Return a 2 line string displaying firstname and lastname
     of each person in names, evenly spaced.
@@ -72,6 +73,7 @@ def name_line(names: 'list[dict]', width: int, centers: 'list[int]') -> str:
         last_names.append(n['last_name'])
 
     return words_line(first_names, width, centers) + '\n' + words_line(last_names, width, centers)
+
 
 
 
@@ -154,11 +156,11 @@ def connecting_lines(source_points: 'list[int]', target_points: 'list[list[int]]
         txt += ''.join(lines[i]) + "\n"
     
     return txt
+    
 
 
 
-
-def draw(root: Individual, width: int) -> str:
+def draw(root: Individual, depth: int, width: int) -> str:
     """Draw the genealogical tree of the given individual.
 
     Args:
@@ -168,27 +170,25 @@ def draw(root: Individual, width: int) -> str:
     Returns:
         str: The tree as a string.
     """
-
-    MAX_DEPTH: int = 3
-
     
     lines = []
 
     # Add d layers
-    for d in range(MAX_DEPTH):
+    for d in range(depth):
 
         source_centers: list[int] = get_spaced_points(2 ** d, width)
         flat_target_points: list[int] = get_spaced_points(2 ** (d + 1), width)
         target_points: list[list[int]] = [flat_target_points[i:i + 2] for i in range(0, len(flat_target_points), 2)]
-
+        
         source_names: list[dict] = root.get_individuals_names(d)
         lines.append(name_line(source_names, width, source_centers))
         lines.append(connecting_lines(source_centers, target_points, width))
 
     # Add the final layers, the names of the d generation
 
-    source_centers: list[int] = get_spaced_points(2 ** MAX_DEPTH, width)
-    source_names: list[dict] = root.get_individuals_names(MAX_DEPTH)
+    source_centers: list[int] = get_spaced_points(2 ** depth, width)
+    source_names: list[dict] = root.get_individuals_names(depth)
+
     lines.append(name_line(source_names, width, source_centers))
 
 
