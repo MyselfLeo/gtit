@@ -1,6 +1,7 @@
 # The only goal of this file is to generate a graphical view of a genealogical tree.
 
 from enum import Enum
+from genealogy import Individual
 
 
 
@@ -155,39 +156,17 @@ def connecting_lines(source_points: 'list[int]', target_points: 'list[list[int]]
 
 
 
-def draw(tree: dict, width: int) -> str:
-    """Draw the maximum of the tree that can be drawn in the given width.
-    
+def draw(root: Individual, width: int) -> str:
+    """Draw the genealogical tree of the given individual.
+
     Args:
-        tree (dict): The tree to draw.
-        width (int): The width of the terminal, in chars.
+        root (Individual): The root of the tree.
+        width (int): The width of the tree, in chars.
+
+    Returns:
+        str: The tree as a string.
     """
 
-    # List of each lines. The first line is the one displayed at the bottom.
-    # The tree is build from the bottom to the top.
-    lines: str = []
+    MAX_DEPTH: int = 3
 
-    # The tree is build from the bottom to the top.
-
-    # Draw the first name line
-    name_centers = get_spaced_points(1, 80)
-    lines.append(name_line([tree], 80, name_centers))
-
-    # Draw the transition lines
-    transition_sources = get_spaced_points(1, 80)
-    transition_targets = [get_spaced_points(2, 80)]
-
-    lines.append(connecting_lines(transition_sources, transition_targets, 80))
-
-    # Draw the second name line
-    names = [tree['father'], tree['mother']]
-    father_centers = get_spaced_points(2, 80)
-    lines.append(name_line(names, 80, father_centers))
-
-
-    # Print the lines
-    txt = ""
-    for i in range(len(lines) - 1, -1, -1):
-        txt += lines[i].rstrip() + "\n"
-
-    return txt
+    

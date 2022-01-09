@@ -28,7 +28,7 @@ class Item:
             child.link_references(ref_dict)
 
 
-    def get_children(self, child_id: str) -> 'Item':
+    def get_child(self, child_id: str) -> 'Item':
         """Return the first child item with the specified identifier.
         
         Args:
@@ -41,6 +41,19 @@ class Item:
             if child.identifier == child_id:
                 return child
         return None
+
+
+    def get_children(self, child_id: str) -> 'list[Item]':
+        """Return a list of child item with the specified identifier.
+
+        Args:
+            child_id (str): The identifier of the child items to return.
+
+        Returns:
+            list[Item]: The list of child items with the specified identifier.
+        """
+        return [child for child in self.children if child.identifier == child_id]
+
 
 
     def get_value(self, value_id: str = None):
@@ -61,7 +74,7 @@ class Item:
             The value of this item if value_id is not given.
         """
         if value_id:
-            child = self.get_children(value_id)
+            child = self.get_child(value_id)
             if child: return child.get_value()
             else: return None
 
