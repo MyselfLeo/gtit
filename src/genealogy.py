@@ -95,6 +95,11 @@ class Individual:
             self.death_place = death_item.get_value('PLAC')
 
 
+
+        # TODO: This code make a stack overflow: building a parent will build a child, which will build a parent, etc.
+
+
+
         # Look for a family where this individual is the child
         family_item = item.get_value('FAMC')
         if family_item:
@@ -108,7 +113,7 @@ class Individual:
 
 
         # Look for families where this individual is the father or the mother
-        family_items_references: 'list[str]' = item.get_children(self, 'FAMS')
+        family_items_references: 'list[str]' = item.get_children('FAMS')
         family_items: 'list[Item]' = []
         for family_item_reference in family_items_references:
             family_items.append(family_item_reference.get_value())
@@ -116,7 +121,7 @@ class Individual:
         # For each family, add the children to this individual
         for family_item in family_items:
             # Get the children of this family and generate them
-            children_items_references: 'list[str]' = family_item.get_children(self, 'CHIL')
+            children_items_references: 'list[str]' = family_item.get_children('CHIL')
             for child_item_reference in children_items_references:
                 child_item: Item = child_item_reference.get_value()
                 self.children.append(Individual(child_item, self.generation - 1))
