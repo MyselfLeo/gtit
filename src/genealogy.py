@@ -115,35 +115,31 @@ class Individual:
 
         # For each family, add the children to this individual
         for family_item in family_items:
-            # Get the children of this family
+            # Get the children of this family and generate them
             children_items_references: 'list[str]' = family_item.get_children(self, 'CHIL')
-            children_items: 'list[Item]' = []
             for child_item_reference in children_items_references:
-                children_items.append(child_item_reference.get_value())
-
-            # For each child, generate the individual
-            for child_item in children_items:
+                child_item: Item = child_item_reference.get_value()
                 self.children.append(Individual(child_item, self.generation - 1))
 
 
 
 
     
-    def get_nb_individuals(self, generation: int) -> int:
+    def get_nb_ancestors(self, generation: int) -> int:
         """
-        Return the number of individuals in the tree, at the given generation.
-        generation == 0 is the root's generation. For now, it is always one (the root individual only).
-        generation == 1 is the root's parents. If the root individual has both parents, it should be 2.
-        etc.
+        Return the number of ancestors of this individual, at the given generation.
 
         Args:
-            generation (int): the generation offset starting from the root.
+            generation (int): the generation offset starting from the root. Must be >= 0.
 
         Returns:
-            The number of individuals in a given generation.
+            The number of ancestors of this individuals in the given generation.
         """
+        if generation < 0: return 0
+
+
         individual_count: int = 0
-        
+    
         if generation == 0: return 1
         elif generation == 1:
             if self.father: individual_count += 1
@@ -151,9 +147,39 @@ class Individual:
             return individual_count
 
         else:
-            if self.father: individual_count += self.father.get_nb_individuals(generation - 1)
-            if self.mother: individual_count += self.mother.get_nb_individuals(generation - 1)
+            if self.father: individual_count += self.father.get_nb_ancestors(generation - 1)
+            if self.mother: individual_count += self.mother.get_nb_ancestors(generation - 1)
             return individual_count
+
+
+
+
+
+    def get_nb_descendant(self, generation: int) -> int:
+        """
+        Return the number of descendants of this individual, at the given generation.
+        Warning: generation must be a negative number, as we're going down in the generations.
+
+        Args:
+            generation (int): the generation offset starting from the root. Must be < 0.
+
+        Returns:
+            The number of descendants of this individual in the given generation.
+        """
+        if generation > 0: return 0
+
+
+        if generation == 0: return 1
+
+        elif generation == -1:
+            return len(self.children)
+
+        else:
+            individual_count: int = 0
+            for child in self.children:
+                individual_count += child.get_nb_descendant(generation + 1)
+            return individual_count
+
 
 
 
@@ -161,6 +187,7 @@ class Individual:
     def get_individuals_names(self, generation: int):
         """
         TODO: Docstring
+        TODO: Refactor all of this
         """
         names = []
 

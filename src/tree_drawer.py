@@ -162,8 +162,12 @@ def connecting_lines(source_points: 'list[int]', target_points: 'list[list[int]]
 
 
 
-def draw(root: Individual, depth: int, width: int) -> str:
-    """Draw the genealogical tree of the given individual.
+
+
+
+def draw_upward(root: Individual, depth: int, width: int) -> str:
+    """Draw the genealogical tree starting of the given Individual root and
+    going up in the generations (parents).
 
     Args:
         root (Individual): The root of the tree.
@@ -193,6 +197,45 @@ def draw(root: Individual, depth: int, width: int) -> str:
 
     lines.append(name_line(source_names, width, source_centers))
 
+    
+    # Reverse the line list
+    lines.reverse()
+    # Return the lines, as string
+    return '\n'.join(lines)
+
+
+
+def draw_downward(root: Individual, depth: int, width: int) -> str:
+    """Draw the genealogical tree starting of the given Individual root and
+    going down in the generations (children).
+
+    Args:
+        root (Individual): The root of the tree.
+        width (int): The width of the tree, in chars.
+
+    Returns:
+        str: The tree as a string.
+    """
+    
+    lines = []
+
+    # Add d layers
+    for d in range(depth):
+
+        source_centers: list[int] = get_spaced_points(2 ** d, width)
+        flat_target_points: list[int] = get_spaced_points(2 ** (d + 1), width)
+        target_points: list[list[int]] = [flat_target_points[i:i + 2] for i in range(0, len(flat_target_points), 2)]
+        
+        source_names: list[dict] = root.get_individuals_names(d)
+        lines.append(name_line(source_names, width, source_centers))
+        lines.append(connecting_lines(source_centers, target_points, width).rstrip())
+
+    # Add the final layers, the names of the d generation
+
+    source_centers: list[int] = get_spaced_points(2 ** depth, width)
+    source_names: list[dict] = root.get_individuals_names(depth)
+
+    lines.append(name_line(source_names, width, source_centers))
 
     
     # Reverse the line list
