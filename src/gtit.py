@@ -34,13 +34,13 @@ def list(ged_data: GEDData, regex: str, remove_artifacts: bool) -> None:
     # Get a list of every individual
     individual_list: 'list[Item]' = ged_data.get_items('INDI')
 
-    # Sort the list of individuals by name
-    individual_list.sort(key=lambda x: x.get_value('NAME'))
+    # Sort the list of individuals by reference id (reference = @I13@, reference id = 13)
+    individual_list.sort(key=lambda x: int(x.reference.replace('@', '')[1:]))
 
 
-    print("%-10s %-50s %-20s" % ("id", "name", "birth date"))
+    print("%-10s %-50s %-20s" % ("reference", "name", "birth date"))
 
-    for i, individual in enumerate(individual_list):
+    for individual in individual_list:
 
         # Skip the name if it doesn't match the regex
         if regex is not None:
@@ -48,17 +48,18 @@ def list(ged_data: GEDData, regex: str, remove_artifacts: bool) -> None:
                 continue
 
 
-        birth: str = ""
-        try: birth = individual.get_child('BIRT').get_value('DATE')
-        except: pass
+        reference: int = int(individual.reference.replace('@', '')[1:])
 
         name: str = individual.get_value('NAME')
-
         if remove_artifacts:
             name = name.replace("/", "")
             name = name.replace("_", " ")
 
-        print("%-10i %-50s %-20s" % (i, name, birth))
+        birth: str = ""
+        try: birth = individual.get_child('BIRT').get_value('DATE')
+        except: pass
+
+        print("%-10i %-50s %-20s" % (reference, name, birth))
 
 
 

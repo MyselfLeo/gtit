@@ -205,6 +205,7 @@ def draw_upward(root: Individual, depth: int, width: int) -> str:
 
 
 
+
 def draw_downward(root: Individual, depth: int, width: int) -> str:
     """Draw the genealogical tree starting of the given Individual root and
     going down in the generations (children).

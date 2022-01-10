@@ -155,7 +155,7 @@ class Individual:
 
 
 
-    def get_nb_descendant(self, generation: int) -> int:
+    def get_nb_descendants(self, generation: int) -> int:
         """
         Return the number of descendants of this individual, at the given generation.
         Warning: generation must be a negative number, as we're going down in the generations.
@@ -177,7 +177,7 @@ class Individual:
         else:
             individual_count: int = 0
             for child in self.children:
-                individual_count += child.get_nb_descendant(generation + 1)
+                individual_count += child.get_nb_descendants(generation + 1)
             return individual_count
 
 
