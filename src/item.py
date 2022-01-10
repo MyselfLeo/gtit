@@ -1,4 +1,15 @@
 class Item:
+
+
+    NAME_HR_CHANGES: dict = {
+        '/': '',
+        '_': ' '
+    }
+
+
+
+
+
     level: int = None               # The item level in the tree
     identifier: str = None          # The item identifier
     reference: str = None           # The item reference value, if any
@@ -28,6 +39,7 @@ class Item:
             child.link_references(ref_dict)
 
 
+
     def get_child(self, child_id: str) -> 'Item':
         """Return the first child item with the specified identifier.
         
@@ -41,6 +53,7 @@ class Item:
             if child.identifier == child_id:
                 return child
         return None
+
 
 
     def get_children(self, child_id: str) -> 'list[Item]':
@@ -85,7 +98,15 @@ class Item:
 
         # Case specific for hr format
         if hr:
-            if self.identifier == 'NAME': return self.value.replace('/', '').strip()
+
+            # Remove every '/' and '_' from the name to make it prettier to read
+            if self.identifier == 'NAME':
+                returned_value: str = self.value
+                for key, value in self.NAME_HR_CHANGES.items():
+                    returned_value = returned_value.replace(key, value).strip()
+                return returned_value
+        
+
         
         # Non specific case, return raw value
         return self.value

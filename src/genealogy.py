@@ -28,6 +28,24 @@ class Individual:
     mother: 'Individual' = None
 
 
+
+    @staticmethod
+    def separate_names(name: str) -> 'tuple(str)':
+        """Tries to separate in the given name the first name and the last name.
+        
+        In a .GED file, the syntax is first name /last name/.
+        """
+        firstname: str = None
+        lastname: str = None
+
+        firstname = name.split('/')[0]
+        lastname = name.split('/')[1]
+
+        #print(firstname, '|', lastname)
+        return firstname, lastname
+
+
+
     def __init__(self, item: Item, generation: int = 0) -> None:
         """
         Generate this individual with the information contained in the given item.
@@ -38,8 +56,7 @@ class Individual:
         self.generation = generation
 
         self._raw_name = item.get_value('NAME')
-        self.first_name = self._raw_name.split('/')[0]
-        self.last_name = self._raw_name.split('/')[1]
+        self.first_name, self.last_name = Individual.separate_names(self._raw_name)
 
 
         self.surname = item.get_value('SURN')
@@ -99,32 +116,26 @@ class Individual:
 
 
 
-    def get_individuals_names(self, generation: int) -> 'list[str]':
+    def get_individuals_names(self, generation: int):
         """
-        Return a list of every name in the given generation.
-
-        Args:
-            generation (int): the generation offset starting from the root.
-
-        Returns:
-            The list of every name in the given generation.
+        TODO: Docstring
         """
         names = []
 
-        if generation == 0: return [{'first_name': self.first_name, 'last_name': self.last_name}]
+        if generation == 0: return [self.get_name_disposition()]
         elif generation == 1:
-            if self.father: names += [{'first_name': self.father.first_name, 'last_name': self.father.last_name}]
-            else: names += [{'first_name': '???', 'last_name': '???'}]
-            if self.mother: names += [{'first_name': self.mother.first_name, 'last_name': self.mother.last_name}]
-            else: names += [{'first_name': '???', 'last_name': '???'}]
+            if self.father: names += [self.father.get_name_disposition()]
+            else: names += [{'top': '???', 'bottom': '???'}]
+            if self.mother: names += [self.mother.get_name_disposition()]
+            else: names += [{'top': '???', 'bottom': '???'}]
             return names
 
         else:
             if self.father: names += self.father.get_individuals_names(generation - 1)
             else:
-                names += [{'first_name': '???', 'last_name': '???'}, {'first_name': '???', 'last_name': '???'}]
+                names += [{'top': '???', 'bottom': '???'}, {'top': '???', 'bottom': '???'}]
             if self.mother: names += self.mother.get_individuals_names(generation - 1)
-            else: names += [{'first_name': '???', 'last_name': '???'}, {'first_name': '???', 'last_name': '???'}]
+            else: names += [{'top': '???', 'bottom': '???'}, {'top': '???', 'bottom': '???'}]
             
             # Check if the nb of names is the one expected
             expected_nb_names: int = 2 ** (generation)
@@ -133,3 +144,22 @@ class Individual:
                 raise ValueError("Can't go back to this generation.")
 
             return names
+
+
+
+
+    
+    def get_name_disposition(self) -> 'list[str]':
+        """Return a list of 2 str representing how the name of this
+        individual should be displayed in a 2 line way.
+
+        If this individual has both firstname and lastname, the syntax is firstname then lastname.
+        If not, display every "word" of the name on top except the last.
+        """
+        if self.first_name != "" and self.last_name != "":
+            return {"top": self.first_name, "bottom": self.last_name}
+
+        else:
+            sep: list[str] = self.first_name.split(' ')
+            last: str = sep.pop()
+            return {"top": ' '.join(sep), "bottom": last}

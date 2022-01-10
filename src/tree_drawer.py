@@ -69,8 +69,8 @@ def name_line(names: 'list[dict]', width: int, centers: 'list[int]') -> str:
     first_names: list[str] = []
     last_names: list[str] = []
     for n in names:
-        first_names.append(n['first_name'])
-        last_names.append(n['last_name'])
+        first_names.append(n['top'])
+        last_names.append(n['bottom'])
 
     return words_line(first_names, width, centers) + '\n' + words_line(last_names, width, centers)
 
@@ -182,7 +182,7 @@ def draw(root: Individual, depth: int, width: int) -> str:
         
         source_names: list[dict] = root.get_individuals_names(d)
         lines.append(name_line(source_names, width, source_centers))
-        lines.append(connecting_lines(source_centers, target_points, width))
+        lines.append(connecting_lines(source_centers, target_points, width).rstrip())
 
     # Add the final layers, the names of the d generation
 
