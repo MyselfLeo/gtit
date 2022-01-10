@@ -29,6 +29,8 @@ class Individual:
     father: 'Individual' = None
     mother: 'Individual' = None
 
+    children: 'list[Individual]' = []
+
 
 
     @staticmethod
@@ -92,6 +94,7 @@ class Individual:
             self.death_date = Individual.parse_date(death_item.get_value('DATE'))
             self.death_place = death_item.get_value('PLAC')
 
+
         # Look for a family where this individual is the child
         family_item = item.get_value('FAMC')
         if family_item:
@@ -101,6 +104,27 @@ class Individual:
             # This part will generate recursively the father and the mother, building up the tree
             if father_item: self.father = Individual(father_item, self.generation + 1)
             if mother_item: self.mother = Individual(mother_item, self.generation + 1)
+
+
+
+        # Look for families where this individual is the father or the mother
+        family_items_references: 'list[str]' = item.get_children(self, 'FAMS')
+        family_items: 'list[Item]' = []
+        for family_item_reference in family_items_references:
+            family_items.append(family_item_reference.get_value())
+
+        # For each family, add the children to this individual
+        for family_item in family_items:
+            # Get the children of this family
+            children_items_references: 'list[str]' = family_item.get_children(self, 'CHIL')
+            children_items: 'list[Item]' = []
+            for child_item_reference in children_items_references:
+                children_items.append(child_item_reference.get_value())
+
+            # For each child, generate the individual
+            for child_item in children_items:
+                self.children.append(Individual(child_item, self.generation - 1))
+
 
 
 

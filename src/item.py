@@ -1,13 +1,7 @@
 class Item:
 
 
-    NAME_HR_CHANGES: dict = {
-        '/': '',
-        '_': ' '
-    }
-
-
-
+    NAME_HR_CHANGES: dict = {'/': '', '_': ' '}
 
 
     level: int = None               # The item level in the tree
@@ -56,6 +50,7 @@ class Item:
 
 
 
+
     def get_children(self, child_id: str) -> 'list[Item]':
         """Return a list of child item with the specified identifier.
 
@@ -66,6 +61,8 @@ class Item:
             list[Item]: The list of child items with the specified identifier.
         """
         return [child for child in self.children if child.identifier == child_id]
+
+
 
 
 
