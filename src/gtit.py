@@ -1,4 +1,4 @@
-
+import re
 import os
 import argparse
 from geddata import GEDData
@@ -24,39 +24,54 @@ def terminal_width() -> int:
 
 
 
-def list(ged_data: GEDData, individuals: bool) -> None:
-    """List elements from the GEDData."""
+def list(ged_data: GEDData, regex: str, remove_artifacts: bool) -> None:
+    """Print a list of individuals from the GEDData.
     
-    if individuals:
-        individual_list: 'list[Item]' = ged_data.get_items('INDI')
+    TODO: Docstring
+    """
+    
+    # Get a list of every individual
+    individual_list: 'list[Item]' = ged_data.get_items('INDI')
 
-        txt: str = ""
-
-        for i, individual in enumerate(individual_list):
-            birth: str = ""
-            try: birth = individual.get_child('BIRT').get_value('DATE')
-            except: pass
-
-            txt += "%-10i %-50s %-20s\n" % (i, individual.get_value('NAME').replace('/', ''), birth)
-
-        print("%-10s %-50s %-20s" % ("id", "name", "birth date"))
-        print(txt)
+    # Sort the list of individuals by name
+    individual_list.sort(key=lambda x: x.get_value('NAME'))
 
 
+    print("%-10s %-50s %-20s" % ("id", "name", "birth date"))
+
+    for i, individual in enumerate(individual_list):
+
+        # Skip the name if it doesn't match the regex
+        if regex is not None:
+            if re.match(regex, individual.get_value('NAME')) is None:
+                continue
+
+
+        birth: str = ""
+        try: birth = individual.get_child('BIRT').get_value('DATE')
+        except: pass
+
+        name: str = individual.get_value('NAME')
+
+        if remove_artifacts:
+            name = name.replace("/", "")
+            name = name.replace("_", " ")
+
+        print("%-10i %-50s %-20s" % (i, name, birth))
 
 
 
-def tree(ged_data: GEDData, root_name: str, depth: int) -> None:
+
+
+
+
+def tree(ged_data: GEDData, name: str, depth: int, remove_artifacts: bool) -> None:
     """Draw a tree from the GEDData."""
 
-    if root_name == "":
-        print("No root specified. Please specify a root with the -r option.")
-        exit(1)
-
-    root: list[Item] = ged_data.find_items('INDI', {"NAME": root_name})
+    root: list[Item] = ged_data.find_individual('INDI', name)
 
     if len(root) == 0:
-        print("Could not find the individual with the name '" + root_name + "'.")
+        print("Could not find the individual with the name '" + name + "'.")
         print(f"You can list the individuals with the 'gtit.py list -i {ged_data.filepath}' mode.")
         exit(1)
 
@@ -86,7 +101,20 @@ def tree(ged_data: GEDData, root_name: str, depth: int) -> None:
         print("Could not draw the tree. Verify your arguments.")
         exit(1)
 
-    exit(0)
+
+
+
+
+
+def load_ged_file(path: str) -> GEDData:
+    """Load a GED file and return a GEDData object."""
+
+    print("Loading GED file...")
+    ged_data: GEDData = GEDData()
+    ged_data.parse(path)
+    print()
+
+    return ged_data
 
 
 
@@ -97,9 +125,9 @@ def main():
     parser = argparse.ArgumentParser()
     # Add the arguments
     parser.add_argument("mode", help="The mode of the program. Available modes: " + ", ".join(AVAILABLE_MODES), default="tree")
-    parser.add_argument("-r", "--root", help="The root of the tree to draw. Must be the name of an individual from the .GED file.", default="")
+    parser.add_argument("-n", "--name", help="A Regular expression to filter the name of the individuals.", default=None)
+    parser.add_argument("-a", "--removeartifacts", help="Whether the display must remove artifacts in the individual names (like / or _).", default=False, action="store_true")
     parser.add_argument("-d", "--depth", help="The depth of the tree to draw. Must be an integer. Default: 2", type=int, default=2)
-    parser.add_argument("-i", "--individuals", help="Only show information about individuals", action="store_true")
     parser.add_argument("path", help="Path to the .GED file")
 
     args = parser.parse_args()
@@ -110,24 +138,24 @@ def main():
         print("Invalid mode: " + args.mode)
         exit(1)
 
-    # Load the GED file
-    ged_data: GEDData = GEDData()
-    ged_data.parse(args.path)
-
 
     # Act depending on the mode
     if args.mode == "list":
-        list(ged_data, args.individuals)
+
+        ged_data: GEDData = load_ged_file(args.path)
+        list(ged_data, args.name, args.removeartifacts)
         exit(0)
 
 
     elif args.mode == "tree":
-        tree(ged_data, args.root, args.depth)
-        exit(0)
 
+        # Check arguments before loading the .GED file
+        if args.name == None:
+            print("No root specified. Please specify the name of the root individual using the -n/--name option.")
+            exit(1)
 
-    elif args.mode == "stats":
-        pass
+        ged_data: GEDData = load_ged_file(args.path)
+        tree(ged_data, args.name, args.depth, args.removeartifacts)
         exit(0)
         
 

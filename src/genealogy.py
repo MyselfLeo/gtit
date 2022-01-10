@@ -1,8 +1,10 @@
 # This file is used to generate a proper object-oriented representation of a genealogical tree.
 # A Genealogical tree is only composed of individuals; each individual has a father and a mother.
 
+import dateutil.parser
 
 from item import Item
+from datetime import date
 
 
 class Individual:
@@ -18,10 +20,10 @@ class Individual:
 
     sex: str = None
 
-    birth_date: str = None
+    birth_date: date = None
     birth_place: str = None
 
-    death_date: str = None
+    death_date: date = None
     death_place: str = None
 
     father: 'Individual' = None
@@ -42,6 +44,23 @@ class Individual:
         lastname = name.split('/')[1]
 
         return firstname, lastname
+
+
+    
+    @staticmethod
+    def parse_date(date_str: str) -> date:
+        """Tries to parse the given date (as a string) into the most precise date object possible."""
+
+        # Parse using dateutil
+        try:
+            return dateutil.parser.parse(date_str)
+        except:
+            # If the date can't be parsed, we expect that only the year is provided
+            return date(int(date_str[-4:]), 1, 1)
+        
+
+
+
 
 
 
@@ -65,12 +84,12 @@ class Individual:
 
         birth_item: Item = item.get_child('BIRT')
         if birth_item:
-            self.birth_date = birth_item.get_value('DATE')
+            self.birth_date = Individual.parse_date(birth_item.get_value('DATE'))
             self.birth_place = birth_item.get_value('PLAC')
 
         death_item: Item = item.get_child('DEAT')
         if death_item:
-            self.death_date = death_item.get_value('DATE')
+            self.death_date = Individual.parse_date(death_item.get_value('DATE'))
             self.death_place = death_item.get_value('PLAC')
 
         # Look for a family where this individual is the child

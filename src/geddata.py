@@ -1,3 +1,4 @@
+import re
 from item import Item
 
 class GEDData:
@@ -152,20 +153,20 @@ class GEDData:
 
 
 
-    def find_items(self, item_id: str, item_filters: 'list[dict]' = []) -> 'list[Item]':
-        """Return every items that meet the specified requirements.
 
-        An example of item filter can be: {"NAME": "John Doe"}
-        """
-        returned_items: 'list[Item]' = self.get_items(item_id)
-        items: 'list[Item]' = []
+    def find_individual(self, item_id: str, searched_name: str) -> 'list[Item]':
+        """Return every individual with the given name."""
 
-        for filter in item_filters:
-            items = returned_items
-            returned_items = []
+        items: 'list[Item]' = self.get_items(item_id)
+        returned_items: 'list[Item]' = []
 
-            for item in items:
-                if item.get_value(filter, True) == item_filters[filter]:
-                    returned_items.append(item)
+        for item in items:
+
+            # Check both raw name and formatted name
+            if re.search(searched_name, item.get_value('NAME')):
+                returned_items.append(item)
+            elif re.search(searched_name, item.get_value('NAME', True)):
+                returned_items.append(item)
+
 
         return returned_items
