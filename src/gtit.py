@@ -66,7 +66,7 @@ def list(ged_data: GEDData, regex: str, remove_artifacts: bool) -> None:
 
 
 
-def tree(ged_data: GEDData, name: str, depth: int, remove_artifacts: bool) -> None:
+def tree(ged_data: GEDData, name: str, depth: int, remove_artifacts: bool, downward: bool) -> None:
     """Draw a tree from the GEDData."""
 
     root: list[Item] = ged_data.find_individual('INDI', name)
@@ -84,7 +84,8 @@ def tree(ged_data: GEDData, name: str, depth: int, remove_artifacts: bool) -> No
 
     while used_depth >= 0:
         try:
-            tree = draw(root, used_depth, terminal_width())
+            if downward: tree = draw_downward(root, -used_depth, terminal_width()) # -use_depth because use_depth > 0 and draw_downward() needs a negative depth
+            else: tree = draw_upward(root, used_depth, terminal_width())
             
             if used_depth != depth:
                 print("[WARN] Could not draw the tree with the specified depth. The tree was drawn with a depth of " + str(used_depth) + ".")
@@ -129,6 +130,7 @@ def main():
     parser.add_argument("-n", "--name", help="A Regular expression to filter the name of the individuals.", default=None)
     parser.add_argument("-a", "--removeartifacts", help="Whether the display must remove artifacts in the individual names (like / or _).", default=False, action="store_true")
     parser.add_argument("-d", "--depth", help="The depth of the tree to draw. Must be an integer. Default: 2", type=int, default=2)
+    parser.add_argument("--downward", help="Whether to display a downward tree from the root (its children) instead of a upward tree (its parents).", default=False, action="store_true")
     parser.add_argument("path", help="Path to the .GED file")
 
     args = parser.parse_args()
@@ -156,7 +158,7 @@ def main():
             exit(1)
 
         ged_data: GEDData = load_ged_file(args.path)
-        tree(ged_data, args.name, args.depth, args.removeartifacts)
+        tree(ged_data, args.name, args.depth, args.removeartifacts, args.downward)
         exit(0)
         
 
