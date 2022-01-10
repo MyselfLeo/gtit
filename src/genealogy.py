@@ -41,7 +41,6 @@ class Individual:
         firstname = name.split('/')[0]
         lastname = name.split('/')[1]
 
-        #print(firstname, '|', lastname)
         return firstname, lastname
 
 
@@ -161,5 +160,5 @@ class Individual:
 
         else:
             sep: list[str] = self.first_name.split(' ')
-            last: str = sep.pop()
-            return {"top": ' '.join(sep), "bottom": last}
+            middle = len(sep) // 2
+            return {"top": ' '.join(sep[0:middle]), "bottom": ' '.join(sep[middle:])}

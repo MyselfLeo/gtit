@@ -52,6 +52,8 @@ def words_line(words: 'list[str]', width: int, centers: 'list[int]') -> str:
         offset: int = len(w) // 2
 
         for j, c in enumerate(w):
+            # Replace '_' by a space
+            if c == '_': c = ' '
             line[centers[i] - offset + j] = c
 
     return ''.join(line)
