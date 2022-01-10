@@ -11,6 +11,7 @@ class Individual:
     """
     Represent an individual.
     """
+    id: int = 0
     generation: int = 0
 
     first_name: str = None # In the form first name /last name/
@@ -26,9 +27,16 @@ class Individual:
     death_date: date = None
     death_place: str = None
 
+    # father_reference, mother_reference and children_references are used after the creation of the Individual
+    # by the geddata parser to link it to the other individual objects.
+
+    father_reference: str = None
+    mother_reference: str = None
+
     father: 'Individual' = None
     mother: 'Individual' = None
 
+    children_references: 'list[str]' = []
     children: 'list[Individual]' = []
 
 
@@ -66,19 +74,18 @@ class Individual:
 
 
 
-    def __init__(self, item: Item, generation: int = 0) -> None:
+    def __init__(self, item: Item) -> None:
         """
         Generate this individual with the information contained in the given item.
         The item must have the 'INDI' identifier.
         """
         assert item.identifier == 'INDI', "The item must have the 'INDI' identifier."
 
-        self.generation = generation
+
+        self.id = item.reference.replace('@', '')[1:]
 
         self._raw_name = item.get_value('NAME')
         self.first_name, self.last_name = Individual.separate_names(self._raw_name)
-
-
         self.surname = item.get_value('SURN')
         self.given_name = item.get_value('GIVN')
 
@@ -96,19 +103,11 @@ class Individual:
 
 
 
-        # TODO: This code make a stack overflow: building a parent will build a child, which will build a parent, etc.
-
-
-
         # Look for a family where this individual is the child
         family_item = item.get_value('FAMC')
         if family_item:
-            father_item = family_item.get_value('HUSB')
-            mother_item = family_item.get_value('WIFE')
-
-            # This part will generate recursively the father and the mother, building up the tree
-            if father_item: self.father = Individual(father_item, self.generation + 1)
-            if mother_item: self.mother = Individual(mother_item, self.generation + 1)
+            self.father_reference = family_item.get_child('HUSB').value # Get the reference string to the father
+            self.mother_reference = family_item.get_child('HUSB').value # Get the reference string to the father
 
 
 
@@ -118,13 +117,14 @@ class Individual:
         for family_item_reference in family_items_references:
             family_items.append(family_item_reference.get_value())
 
-        # For each family, add the children to this individual
+
+        # For each family, add the children reference to this individual
         for family_item in family_items:
-            # Get the children of this family and generate them
+            # Add each child reference to this individual
             children_items_references: 'list[str]' = family_item.get_children('CHIL')
+
             for child_item_reference in children_items_references:
-                child_item: Item = child_item_reference.get_value()
-                self.children.append(Individual(child_item, self.generation - 1))
+                self.children_references += child_item_reference.value
 
 
 

@@ -4,7 +4,7 @@ import argparse
 from sys import exit
 from geddata import GEDData
 from item import Item
-from genealogy import Individual
+from individual import Individual
 from tree_drawer import *
 
 

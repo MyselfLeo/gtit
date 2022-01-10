@@ -1,24 +1,26 @@
 import re
 from item import Item
+from individual import Individual
 
 class GEDData:
     """Represent all the informations contained in a .GED file.
 
-    Like a .GED file, it is composed of a succession of items (Individuals, Families, Notes, etc.) that
-    are linked together.
+    The parsing of the .GED file is done in 3 steps:
+    - Divide the file into items (Families, Individuals, etc.)
+    - From the list of items, create a list of Individual objects.
+    - Link the individuals with their parents and children.
 
-    This class can then generate a genealogical tree, starting from an Individual Item and making its way up
-    in the generations.
+    Creating on-the-fly the Individual objects was not possible, as it was causing
+    problem linking the individuals with their parents and children. We need to have a list
+    of every Individuals in the form of objects.
     """
 
-    # File path
-    filepath: str = ''
+    filepath: str = ''                      # File path
+    individuals: 'list[Individual]' = []    # List of every individuals present in the .GED file
 
-    # GEDData items
-    items: 'list[Item]' = []
-
-    # Reference dictionary
-    references = {}
+    _items: 'list[Item]' = []               # GEDData items
+    _item_references = {}                   # Reference dictionary for items
+    _individual_references = {}             # Reference dictionary for Individual objects
 
 
 
@@ -57,8 +59,8 @@ class GEDData:
         return sub_blocks
 
 
-
-    def hierarchy_to_items(self, hierarchy) -> 'list[Item]':
+    @staticmethod
+    def hierarchy_to_items(hierarchy) -> 'list[Item]':
         """
         Take a generated hierarchy (as a dict, coming from the divide_into_sub_blocks method)
         and convert it into multiple items.
@@ -88,25 +90,56 @@ class GEDData:
 
             # Get the children of the item, if any (children are in the hierarchy[key] dict)
             if hierarchy[key] != '':
-                item.children = self.hierarchy_to_items(hierarchy[key])
+                item.children = Item.hierarchy_to_items(hierarchy[key])
 
             items.append(item)
 
-
         return items
-        
 
 
-    def find_references(self) -> None:
-        """
-        Iterate over each of the item of the tree and find references.
-        """
 
-        for item in self.items:
+
+    def generate_items(self, hierarchy) -> None:
+        """Take the hierarchy and generate the items."""
+
+        # Generate the list of items
+        self._items = Item.hierarchy_to_items(hierarchy)
+
+        # Reference the items
+        for item in self._items:
             if item.reference != '':
-                self.references[item.reference] = item
+                self._references[item.reference] = item
+
+        # Link references
+        for item in self._items:
+            item.link_references(self._references)
+        
         
     
+
+
+
+    def generate_individuals(self) -> None:
+        """Generate the individuals from the list of items."""
+
+        for item in self._items:
+            if item.identifier == 'INDI':
+                indi: Individual = Individual(item)                     # Create the individual
+                self._individual_references[f"@I{indi.id}@"] = indi     # Reference this individual in the _individual_references dict
+                self.individuals.append(indi)                           # Add this individual to the list of individuals
+        
+        # For each individual of the list, link the parents and children
+        for indi in self.individuals:
+            if indi.father_reference: indi.father = self._individual_references[indi.father_reference]
+            if indi.mother_reference: indi.mother = self._individual_references[indi.mother_reference]
+
+            for child_reference in indi.child_references:
+                indi.children.append(self._individual_references[child_reference])
+
+
+
+
+
     
 
     def parse(self, filepath: str) -> None:
@@ -125,31 +158,44 @@ class GEDData:
             Warning: If the file does not look valid, but parsing is not stopped.
         """
 
+        self.filepath = filepath
+
         # Open the file
-        with open(filepath, 'r', encoding = 'utf-8-sig') as f:
+        with open(self.filepath, 'r', encoding = 'utf-8-sig') as f:
             file: str = f.read()
 
         # Check for the validity of the file
         if not file.startswith('0 HEAD'):
-            raise Exception(f"The file {filepath} is not a valid .GED file.")
+            raise Exception(f"The file {self.filepath} is not a valid .GED file.")
 
-        self.filepath = filepath
 
-        hierachy: dict = GEDData.divide_into_sub_blocks(file)
-        self.items = self.hierarchy_to_items(hierachy)
+        # Generate the items
+        hierarchy: dict = GEDData.divide_into_sub_blocks(file)   
+        self.generate_items(self, hierarchy)
 
-        # Find references
-        self.find_references()
+        # Generate the individuals
+        self.generate_individuals()
 
-        # Link references
-        for item in self.items:
-            item.link_references(self.references)
+
+
+        
+
+
+
+
+
+
+
+
+
 
 
     
     def get_items(self, item_id: str) -> 'list[Item]':
         """Return a list of items with the given identifier."""
-        return [item for item in self.items if item.identifier == item_id]
+        return [item for item in self._items if item.identifier == item_id]
+
+
 
 
 

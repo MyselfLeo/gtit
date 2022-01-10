@@ -1,7 +1,7 @@
 # The only goal of this file is to generate a graphical view of a genealogical tree.
 
 from enum import Enum
-from genealogy import Individual
+from individual import Individual
 
 
 
