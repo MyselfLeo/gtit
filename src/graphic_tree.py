@@ -1,7 +1,7 @@
 # The only goal of this file is to generate a graphical view of a genealogical tree.
 
+import os
 from enum import Enum
-from re import T
 from individual import Individual
 
 
@@ -70,6 +70,7 @@ class LineTransition:
 
 
 
+
     @staticmethod
     def get_spaced_points(nb_points: int, width: int) -> 'list[int]':
         """Return a list of position in the x coordinate corresponding to points evenly spaced in the width space.
@@ -107,6 +108,8 @@ class LineTransition:
                 if not source_indi.mother in list_of_targets: list_of_targets.append(source_indi.mother)
                 self.transition_dict[i] += [list_of_targets.index(source_indi.mother)]
 
+        self.nb_target_points = len(list_of_targets)
+
 
 
 
@@ -126,6 +129,7 @@ class LineTransition:
                 if child not in list_of_targets: list_of_targets.append(child)
                 self.transition_dict[i] += [list_of_targets.index(child)]
 
+        self.nb_target_points = len(list_of_targets)
 
 
 
@@ -165,7 +169,7 @@ class LineTransition:
                 lines[lvl][source_point] = LINE_SYMBOLS.VER.value
 
             # Sort the targets from the farest to the nearest of the source_point
-            targets: list[int] = target_points_position
+            targets: list[int] = [target_points_position[x] for x in targeted_positions]
             targets.sort(key=lambda x: abs(x - source_point))
             targets.reverse()
 
@@ -224,8 +228,6 @@ class LineTransition:
 
 
 
-
-
     def draw_lines_downward(self, lines: int = 5) -> str:
         """Returns a string representing lines going from nb_source_points and going to nb_target_points.
 
@@ -253,7 +255,7 @@ class LineTransition:
             targeted_positions: list[int] = self.transition_dict[i]
 
             # Don't draw anything if the source_point has no target
-            if target_points_position == []: continue
+            if targeted_positions == []: continue
 
 
             # Draw the vertical line up to horizontal_lvl - 1
@@ -261,7 +263,7 @@ class LineTransition:
                 lines[lvl][source_point] = LINE_SYMBOLS.VER.value
 
             # Sort the targets from the farest to the nearest of the source_point
-            targets: list[int] = target_points_position
+            targets: list[int] = [target_points_position[x] for x in targeted_positions]
             targets.sort(key=lambda x: abs(x - source_point))
             targets.reverse()
 
@@ -333,7 +335,63 @@ class GraphicTree:
 
 
 
-    
+    def __init__(self, root: Individual) -> None:
+        self.root = root
+
+
+    @staticmethod
+    def terminal_width() -> int:
+        """Return the width of the terminal."""
+        DEFAULT_WIDTH: int = 80
+
+        try: return os.get_terminal_size().columns
+        except: return DEFAULT_WIDTH
+
+
+
+
+    @staticmethod
+    def words_line(words: 'list[str]', width: int, centers: 'list[int]') -> str:
+        """Returns a line made of the given words placed according to the given centers.
+        Args:
+            words (list[str]): The words to put in the line.
+            width (int): The width of the line, in chars.
+            centers (list[int]): The position of the center of each word.
+        """
+
+        assert len(words) == len(centers), "The number of words and the number of centers must be the same."
+
+        line = [" "] * width
+
+        # Place each word in the line
+        for i, w in enumerate(words):
+            offset: int = len(w) // 2
+
+            for j, c in enumerate(w):
+                # Replace '_' by a space
+                if c == '_': c = ' '
+                line[centers[i] - offset + j] = c
+
+        return ''.join(line)
+
+
+
+
+    @staticmethod
+    def name_line(names: 'list[dict]', width: int, centers: 'list[int]') -> str:
+        """Return a 2 line string displaying firstname and lastname
+        of each person in names, evenly spaced.
+        """
+
+        assert len(names) == len(centers), f"The number of names {len(names)} and the number of centers {len(centers)} must be the same."
+
+        first_names: list[str] = []
+        last_names: list[str] = []
+        for n in names:
+            first_names.append(n['top'])
+            last_names.append(n['bottom'])
+
+        return Individual.words_line(first_names, width, centers) + '\n' + Individual.words_line(last_names, width, centers)
 
 
 
@@ -341,141 +399,12 @@ class GraphicTree:
 
 
 
+    def draw(self, depth: int = 2) -> str:
+        """Return a string representing a graphic tree starting from the root and up to the depth generation.
 
+        If depth > 0, it will represent the ancestors of the root.
+        If depth < 0, it will represent the descendants of the root.
+        """
 
-
-
-
-
-
-
-
-def words_line(words: 'list[str]', width: int, centers: 'list[int]') -> str:
-    """Returns a line made of the given words placed according to the given centers.
-    Args:
-        words (list[str]): The words to put in the line.
-        width (int): The width of the line, in chars.
-        centers (list[int]): The position of the center of each word.
-    """
-
-    assert len(words) == len(centers), "The number of words and the number of centers must be the same."
-
-    line = [" "] * width
-
-    # Place each word in the line
-    for i, w in enumerate(words):
-        offset: int = len(w) // 2
-
-        for j, c in enumerate(w):
-            # Replace '_' by a space
-            if c == '_': c = ' '
-            line[centers[i] - offset + j] = c
-
-    return ''.join(line)
-
-
-
-
-def name_line(names: 'list[dict]', width: int, centers: 'list[int]') -> str:
-    """Return a 2 line string displaying firstname and lastname
-    of each person in names, evenly spaced.
-    """
-
-    assert len(names) == len(centers), f"The number of names {len(names)} and the number of centers {len(centers)} must be the same."
-
-    first_names: list[str] = []
-    last_names: list[str] = []
-    for n in names:
-        first_names.append(n['top'])
-        last_names.append(n['bottom'])
-
-    return words_line(first_names, width, centers) + '\n' + words_line(last_names, width, centers)
-
-
-
-    
-
-
-
-
-
-'''
-def draw_upward(root: Individual, depth: int, width: int) -> str:
-    """Draw the genealogical tree starting of the given Individual root and
-    going up in the generations (parents).
-
-    Args:
-        root (Individual): The root of the tree.
-        width (int): The width of the tree, in chars.
-
-    Returns:
-        str: The tree as a string.
-    """
-    
-    lines = []
-
-    # Add d layers
-    for d in range(depth):
-
-        source_centers: list[int] = get_spaced_points(2 ** d, width)
-        flat_target_points: list[int] = get_spaced_points(2 ** (d + 1), width)
-        target_points: list[list[int]] = [flat_target_points[i:i + 2] for i in range(0, len(flat_target_points), 2)]
-        
-        source_names: list[dict] = root.get_individuals_names(d)
-        lines.append(name_line(source_names, width, source_centers))
-        lines.append(connecting_lines(source_centers, target_points, width).rstrip())
-
-    # Add the final layers, the names of the d generation
-
-    source_centers: list[int] = get_spaced_points(2 ** depth, width)
-    source_names: list[dict] = root.get_individuals_names(depth)
-
-    lines.append(name_line(source_names, width, source_centers))
-
-    
-    # Reverse the line list
-    lines.reverse()
-    # Return the lines, as string
-    return '\n'.join(lines)
-
-
-
-
-def draw_downward(root: Individual, depth: int, width: int) -> str:
-    """Draw the genealogical tree starting of the given Individual root and
-    going down in the generations (children).
-
-    Args:
-        root (Individual): The root of the tree.
-        width (int): The width of the tree, in chars.
-
-    Returns:
-        str: The tree as a string.
-    """
-    
-    lines = []
-
-    # Add d layers
-    for d in range(depth):
-
-        source_centers: list[int] = get_spaced_points(2 ** d, width)
-        flat_target_points: list[int] = get_spaced_points(2 ** (d + 1), width)
-        target_points: list[list[int]] = [flat_target_points[i:i + 2] for i in range(0, len(flat_target_points), 2)]
-        
-        source_names: list[dict] = root.get_individuals_names(d)
-        lines.append(name_line(source_names, width, source_centers))
-        lines.append(connecting_lines(source_centers, target_points, width).rstrip())
-
-    # Add the final layers, the names of the d generation
-
-    source_centers: list[int] = get_spaced_points(2 ** depth, width)
-    source_names: list[dict] = root.get_individuals_names(depth)
-
-    lines.append(name_line(source_names, width, source_centers))
-
-    
-    # Reverse the line list
-    lines.reverse()
-    # Return the lines, as string
-    return '\n'.join(lines)
-'''
+        # TODO
+        pass

@@ -14,15 +14,6 @@ AVAILABLE_MODES = ["list", "stats", "tree"]
 
 
 
-def terminal_width() -> int:
-    """Return the width of the terminal."""
-    DEFAULT_WIDTH: int = 80
-
-    try: return os.get_terminal_size().columns
-    except: return DEFAULT_WIDTH
-
-
-
 
 
 def list(ged_data: GEDData, regex: str, remove_artifacts: bool) -> None:
