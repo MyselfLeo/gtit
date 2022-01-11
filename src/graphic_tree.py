@@ -16,7 +16,7 @@ class LINE_SYMBOLS(Enum):
 
 
 
-class LineTransitionScheme:
+class LineTransition:
     """
     TODO: Docstring
     """
@@ -69,6 +69,12 @@ class LineTransitionScheme:
             for child in source_indi.children:
                 if child not in list_of_targets: list_of_targets.append(child)
                 self.transition_dict[i] += [list_of_targets.index(child)]
+
+
+
+    def draw_lines():
+        """TODO"""
+        pass
 
 
 
