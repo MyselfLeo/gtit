@@ -9,9 +9,9 @@ class LINE_SYMBOLS(Enum):
     HOR = '═'
     VER = '║'
     DIAG_L = '╗'
+    DIAG_L_B = '╝'
     DIAG_R = '╔'
-    DIAG_L_B = '╚'
-    DIAG_R_B = '╝'
+    DIAG_R_B = '╚'
     BRANCH_DOWN = '╦'
     BRANCH_UP = '╩'
     BRANCH_LEFT = '╣'
@@ -129,6 +129,7 @@ class LineTransition:
 
 
 
+
     def draw_lines_upward(self, lines: int = 5) -> str:
         """Returns a string representing lines going from nb_source_points and going to nb_target_points.
 
@@ -184,7 +185,7 @@ class LineTransition:
 
                 if direction == 0: symbol_to_add = LINE_SYMBOLS.VER.value
                 elif direction == 1: symbol_to_add = LINE_SYMBOLS.DIAG_R.value
-                else: symbol_to_add = LINE_SYMBOLS.DIAG_L.value
+                elif direction == -1: symbol_to_add = LINE_SYMBOLS.DIAG_L.value
 
                 lines[horizontal_lvl][source_point] = Symbol(previous_symbol) + Symbol(symbol_to_add)
 
@@ -202,8 +203,8 @@ class LineTransition:
                 previous_symbol = lines[horizontal_lvl][target_point]
                 symbol_to_add = ' '
 
-                if direction == 1: symbol_to_add == LINE_SYMBOLS.DIAG_R_B.value
-                elif direction == -1: symbol_to_add == LINE_SYMBOLS.DIAG_L_B.value
+                if direction == 1: symbol_to_add == LINE_SYMBOLS.DIAG_L_B.value
+                elif direction == -1: symbol_to_add == LINE_SYMBOLS.DIAG_R_B.value
 
                 lines[horizontal_lvl][target_point] = Symbol(previous_symbol) + Symbol(symbol_to_add)
 
@@ -282,8 +283,8 @@ class LineTransition:
                 # on the string. We're using the Symbol class to facilitate the addition of characters
 
                 if direction == 0: symbol_to_add = LINE_SYMBOLS.VER.value
-                elif direction == 1: symbol_to_add = LINE_SYMBOLS.DIAG_R.value
-                else: symbol_to_add = LINE_SYMBOLS.DIAG_L.value
+                elif direction == 1: symbol_to_add = LINE_SYMBOLS.DIAG_R_B.value
+                elif direction == -1: symbol_to_add = LINE_SYMBOLS.DIAG_L_B.value
 
                 lines[horizontal_lvl][source_point] = Symbol(previous_symbol) + Symbol(symbol_to_add)
 
@@ -301,8 +302,8 @@ class LineTransition:
                 previous_symbol = lines[horizontal_lvl][target_point]
                 symbol_to_add = ' '
 
-                if direction == 1: symbol_to_add == LINE_SYMBOLS.DIAG_R_B.value
-                elif direction == -1: symbol_to_add == LINE_SYMBOLS.DIAG_L_B.value
+                if direction == 1: symbol_to_add == LINE_SYMBOLS.DIAG_L.value
+                elif direction == -1: symbol_to_add == LINE_SYMBOLS.DIAG_R.value
 
                 lines[horizontal_lvl][target_point] = Symbol(previous_symbol) + Symbol(symbol_to_add)
 
@@ -312,9 +313,8 @@ class LineTransition:
                     lines[lvl][target_point] = LINE_SYMBOLS.VER.value
 
 
-        
-        # Reverse the line list
-        lines.reverse()
+
+        # Note that we don't reverse the string like in draw_lines_upward
         # Return the lines, as string
         return '\n'.join(lines)
 
@@ -370,7 +370,7 @@ class LineTransition:
                 for j in range(point - 1, target_point, -1):
                     lines[turn_height][j] = LINE_SYMBOLS.HOR.value
 
-                lines[turn_height][target_point] = LINE_SYMBOLS.DIAG_L_B.value
+                lines[turn_height][target_point] = LINE_SYMBOLS.DIAG_R_B.value
                 # Check if this line comes from a split
                 if len(target_points[i]) > 1:
                     other_point: int = target_points[i][1] if target_points[i][0] == target_point else target_points[i][0]
