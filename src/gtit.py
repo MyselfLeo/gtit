@@ -5,7 +5,7 @@ from sys import exit
 from geddata import GEDData
 from item import Item
 from individual import Individual
-from tree_drawer import *
+from graphic_tree import *
 
 
 
