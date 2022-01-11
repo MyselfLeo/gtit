@@ -67,6 +67,24 @@ class Individual:
         except:
             # If the date can't be parsed, we expect that only the year is provided
             return date(int(date_str[-4:]), 1, 1)
+
+    
+    
+
+    def get_name_disposition(self) -> 'list[str]':
+        """Return a list of 2 str representing how the name of this
+        individual should be displayed in a 2 line way.
+
+        If this individual has both firstname and lastname, the syntax is firstname then lastname.
+        If not, display every "word" of the name on top except the last.
+        """
+        if self.first_name != "" and self.last_name != "":
+            return {"top": self.first_name, "bottom": self.last_name}
+
+        else:
+            sep: list[str] = self.first_name.split(' ')
+            middle = len(sep) // 2
+            return {"top": ' '.join(sep[0:middle]), "bottom": ' '.join(sep[middle:])}
         
 
 
@@ -129,111 +147,55 @@ class Individual:
 
 
 
+
     
-    def get_nb_ancestors(self, generation: int) -> int:
+    def get_ancestors(self, generation: int) -> 'list[Individual]':
         """
-        Return the number of ancestors of this individual, at the given generation.
+        Return the list of ancestors of this Individual at the given generation.
 
         Args:
-            generation (int): the generation offset starting from the root. Must be >= 0.
+            generation (int): the generation offset starting from the root. Must be >= 0. get_descendants will be called otherwise.
 
         Returns:
-            The number of ancestors of this individuals in the given generation.
+            List of every ancestors of this Individual at the given generation.
         """
-        if generation < 0: return 0
+        if generation < 0: return self.get_descendants(generation)
 
-
-        individual_count: int = 0
+        ancestors: list[Individual] = []
     
-        if generation == 0: return 1
+        if generation == 0: return []
         elif generation == 1:
-            if self.father: individual_count += 1
-            if self.mother: individual_count += 1
-            return individual_count
+            if self.father: ancestors.append(self.father)
+            if self.mother: ancestors.append(self.mother)
+            return ancestors
 
         else:
-            if self.father: individual_count += self.father.get_nb_ancestors(generation - 1)
-            if self.mother: individual_count += self.mother.get_nb_ancestors(generation - 1)
-            return individual_count
+            if self.father: ancestors += self.father.get_ancestors(generation - 1)
+            if self.mother: ancestors += self.mother.get_ancestors(generation - 1)
+            return ancestors
 
 
 
 
 
-    def get_nb_descendants(self, generation: int) -> int:
+    def get_descendants(self, generation: int) -> 'list[Individual]':
         """
-        Return the number of descendants of this individual, at the given generation.
-        Warning: generation must be a negative number, as we're going down in the generations.
+        Return the list of ancestors of this Individual at the given generation.
 
         Args:
-            generation (int): the generation offset starting from the root. Must be < 0.
+            generation (int): the generation offset starting from the root. Must be < 0. get_ancestors will be called otherwise.
 
         Returns:
-            The number of descendants of this individual in the given generation.
+            List of every descendants of this Individual at the given generation.
         """
-        if generation > 0: return 0
+        if generation > 0: return self.get_ancestors(generation)
 
-
-        if generation == 0: return 1
-
+        if generation == 0: return []
         elif generation == -1:
-            return len(self.children)
+            return self.children
 
         else:
-            individual_count: int = 0
+            descendants: list[Individual] = []
             for child in self.children:
-                individual_count += child.get_nb_descendants(generation + 1)
-            return individual_count
-
-
-
-
-
-    def get_individuals_names(self, generation: int):
-        """
-        TODO: Docstring
-        TODO: Refactor all of this
-        """
-        names = []
-
-        if generation == 0: return [self.get_name_disposition()]
-        elif generation == 1:
-            if self.father: names += [self.father.get_name_disposition()]
-            else: names += [{'top': '???', 'bottom': '???'}]
-            if self.mother: names += [self.mother.get_name_disposition()]
-            else: names += [{'top': '???', 'bottom': '???'}]
-            return names
-
-        else:
-            if self.father: names += self.father.get_individuals_names(generation - 1)
-            else:
-                names += [{'top': '???', 'bottom': '???'}, {'top': '???', 'bottom': '???'}]
-            if self.mother: names += self.mother.get_individuals_names(generation - 1)
-            else: names += [{'top': '???', 'bottom': '???'}, {'top': '???', 'bottom': '???'}]
-            
-            # Check if the nb of names is the one expected
-            expected_nb_names: int = 2 ** (generation)
-
-            if len(names) != expected_nb_names:
-                raise ValueError("Can't go back to this generation.")
-
-            return names
-
-
-
-
-    
-    def get_name_disposition(self) -> 'list[str]':
-        """Return a list of 2 str representing how the name of this
-        individual should be displayed in a 2 line way.
-
-        If this individual has both firstname and lastname, the syntax is firstname then lastname.
-        If not, display every "word" of the name on top except the last.
-        """
-        if self.first_name != "" and self.last_name != "":
-            return {"top": self.first_name, "bottom": self.last_name}
-
-        else:
-            sep: list[str] = self.first_name.split(' ')
-            middle = len(sep) // 2
-            return {"top": ' '.join(sep[0:middle]), "bottom": ' '.join(sep[middle:])}
+                descendants += child.get_descendants(generation + 1)
+            return descendants
