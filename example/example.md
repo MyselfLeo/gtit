@@ -40,7 +40,7 @@ The `-n` argument, for _name_, can be added to filter the individuals using a re
 ```
 
 
-| **NOTE**|
-| |
-| Names in a common .GED file are stored in the form `first name /last name/`, or sometimes `first name last_name`. The program check for a match with the regular expression on the _"raw  name"_ (i.e. how it's stored in the .GED file) and on the _"cleaned name"_ (the raw name, without `/` and `_`). However, the names are always displayed _"clean"_.|
+> **NOTE**
+>
+> Names in a common .GED file are stored in the form `first name /last name/`, or sometimes `first name last_name`. The program check for a match with the regular expression on the _"raw  name"_ (i.e. how it's stored in the .GED file) and on the _"cleaned name"_ (the raw name, without `/` and `_`). However, the names are always displayed _"clean"_.
 
