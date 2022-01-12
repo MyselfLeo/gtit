@@ -98,6 +98,19 @@ class GEDData:
 
 
 
+    @staticmethod
+    def print_individuals_list(individuals_list: 'list[Individual]') -> None:
+        """Print a formatted list of individuals to the terminal"""
+        # Sort the list of individuals by reference id (reference = @I13@, reference id = 13)
+        individuals_list.sort(key=lambda x: int(x.id))
+
+        print("%-10s %-50s %-20s" % ("reference", "name", "birth date"))
+        for individual in individuals_list:
+            print("%-10s %-50s %-20s" % (individual.id, individual.get_cleared_raw_name(), individual.birth_date))
+        
+
+
+
 
     def generate_items(self, hierarchy) -> None:
         """Take the hierarchy and generate the items."""
@@ -191,19 +204,50 @@ class GEDData:
 
 
 
-    def find_individual(self, searched_name: str) -> 'list[Individual]':
-        """Return every individual with the given name."""
-
-        returned_individuals: list = []
-
+    def get_individual(self, indi_id: int) -> Individual:
+        """Return the individual with the given id"""
         for indi in self.individuals:
+            if indi.id == indi_id: return indi
+        return None
 
-            # Check some variations of the name
-            if re.search(searched_name, indi._raw_name):
-                returned_individuals.append(indi)
-            elif re.search(searched_name, f"{indi.first_name}  {indi.last_name}"):
-                returned_individuals.append(indi)
-            elif re.search(searched_name, indi.get_cleared_raw_name()):
-                returned_individuals.append(indi)
 
-        return returned_individuals
+
+    def find_individual(self, search: str) -> 'list[Individual]':
+        """Method to find an individual.
+        
+        - If search is a number, return the individual with the given id.
+        - If search is a str, look for individuals with this name.
+        If multiple individuals are found, this method will prompt the user to
+        choose between the individuals.
+        """
+
+        try:
+            search = int(search)
+            return self.get_individual(search)
+        except:
+            returned_individuals: list = []
+
+            for indi in self.individuals:
+
+                # Check some variations of the name
+                if re.search(search, indi._raw_name):
+                    returned_individuals.append(indi)
+                elif re.search(search, f"{indi.first_name}  {indi.last_name}"):
+                    returned_individuals.append(indi)
+                elif re.search(search, indi.get_cleared_raw_name()):
+                    returned_individuals.append(indi)
+
+            if len(returned_individuals) == 0: return None
+            if len(returned_individuals) == 1: return returned_individuals[0]
+
+            print("Multiple individuals found. Please select one in this list:")
+            self.print_individuals_list(returned_individuals)
+            
+            possible_values: list[int] = [str(x.id) for x in returned_individuals]
+
+            chosen_value: int = None
+            while chosen_value not in possible_values:
+                chosen_value = input("Reference: ")
+            
+            return self.get_individual(int(chosen_value))
+

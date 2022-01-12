@@ -1,7 +1,7 @@
 import re
 import os
 import argparse
-from sys import exit
+from sys import exit, get_coroutine_origin_tracking_depth
 from geddata import GEDData
 from item import Item
 from individual import Individual
@@ -23,34 +23,12 @@ def list(ged_data: GEDData, regex: str, remove_artifacts: bool) -> None:
     """
     
     # Get a list of every individual
-    individual_list: 'list[Item]' = ged_data.get_items('INDI')
+    individual_list: 'list[Individual]' = ged_data.individuals
 
     # Sort the list of individuals by reference id (reference = @I13@, reference id = 13)
-    individual_list.sort(key=lambda x: int(x.reference.replace('@', '')[1:]))
+    individual_list.sort(key=lambda x: int(x.id))
 
-
-    print("%-10s %-50s %-20s" % ("reference", "name", "birth date"))
-
-    for individual in individual_list:
-
-        # Skip the name if it doesn't match the regex
-        if regex is not None:
-            if re.match(regex, individual.get_value('NAME')) is None:
-                continue
-
-
-        reference: int = int(individual.reference.replace('@', '')[1:])
-
-        name: str = individual.get_value('NAME')
-        if remove_artifacts:
-            name = name.replace("/", "")
-            name = name.replace("_", " ")
-
-        birth: str = ""
-        try: birth = individual.get_child('BIRT').get_value('DATE')
-        except: pass
-
-        print("%-10i %-50s %-20s" % (reference, name, birth))
+    ged_data.print_individuals_list(individual_list)
 
 
 
@@ -63,12 +41,10 @@ def tree(ged_data: GEDData, name: str, depth: int, remove_artifacts: bool, downw
 
     root: list[Individual] = ged_data.find_individual(name)
 
-    if len(root) == 0:
+    if root == None:
         print("Could not find the individual with the name '" + name + "'.")
         print(f"You can list the individuals with the 'gtit.py list -i {ged_data.filepath}' mode.")
         exit(1)
-
-    root = root[0]
 
 
     used_depth: int = depth

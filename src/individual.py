@@ -66,8 +66,6 @@ class Individual:
         # TODO: use convention of GEDCOM
         return date_str
 
-        
-
 
 
 
@@ -81,7 +79,7 @@ class Individual:
         assert item.identifier == 'INDI', "The item must have the 'INDI' identifier."
 
 
-        self.id = item.reference.replace('@', '')[1:]
+        self.id = int(item.reference.replace('@', '')[1:])
 
         self._raw_name = item.get_value('NAME')
         self.first_name, self.last_name = Individual.separate_names(self._raw_name)
