@@ -1,6 +1,7 @@
 # The only goal of this file is to generate a graphical view of a genealogical tree.
 
 import os
+import re
 from enum import Enum
 from individual import Individual
 
@@ -26,27 +27,27 @@ class Symbol:
     symbol: str
 
     ADDITION_TABLE = {
-        '═': {'║': '╬', '╗': '╦', '╔': '╦', '╚': '╩', '╝': '╩', '╦': '╦', '╩': '╩', '╣': '╬', '╠': '╬', '╬': '╬', ' ': '═'},
-        '║': {'═': '╬', '╗': '╣', '╔': '╠', '╚': '╠', '╝': '╣', '╦': '╬', '╩': '╬', '╣': '╣', '╠': '╠', '╬': '╬', ' ': '║'},
-        '╗': {'═': '╦', '║': '╣', '╔': '╦', '╚': '╬', '╝': '╣', '╦': '╦', '╩': '╬', '╣': '╣', '╠': '╬', '╬': '╬', ' ': '╗'},
-        '╔': {'═': '╦', '║': '╠', '╗': '╦', '╚': '╠', '╝': '╬', '╦': '╦', '╩': '╬', '╣': '╬', '╠': '╠', '╬': '╬', ' ': '╔'},
-        '╚': {'═': '╩', '║': '╠', '╗': '╬', '╔': '╠', '╝': '╬', '╦': '╬', '╩': '╬', '╣': '╬', '╠': '╠', '╬': '╬', ' ': '╚'},
-        '╝': {'═': '╩', '║': '╣', '╗': '╣', '╔': '╬', '╚': '╩', '╦': '╬', '╩': '╩', '╣': '╣', '╠': '╬', '╬': '╬', ' ': '╝'},
-        '╦': {'═': '╦', '║': '╬', '╗': '╦', '╔': '╦', '╚': '╬', '╝': '╬', '╩': '╬', '╣': '╬', '╠': '╬', '╬': '╬', ' ': '╦'},
-        '╩': {'═': '╩', '║': '╬', '╗': '╬', '╔': '╬', '╚': '╩', '╝': '╩', '╦': '╬', '╣': '╬', '╠': '╬', '╬': '╬', ' ': '╩'},
-        '╣': {'═': '╬', '║': '╣', '╗': '╣', '╔': '╬', '╚': '╬', '╝': '╣', '╦': '╬', '╩': '╬', '╠': '╬', '╬': '╬', ' ': '╣'},
-        '╠': {'═': '╬', '║': '╠', '╗': '╬', '╔': '╠', '╚': '╠', '╝': '╬', '╦': '╬', '╩': '╬', '╣': '╬', '╬': '╬', ' ': '╠'},
-        '╬': {'═': '╬', '║': '╬', '╗': '╬', '╔': '╬', '╚': '╬', '╝': '╬', '╦': '╬', '╩': '╬', '╣': '╬', '╬': '╬', ' ': '╬'},
-        ' ': {'═': '═', '║': '║', '╗': '╗', '╔': '╔', '╚': '╚', '╝': '╝', '╦': '╦', '╩': '╩', '╣': '╣', '╬': '╬', ' ': ' '}
+        '═': {'═':'═', '║': '╬', '╗': '╦', '╔': '╦', '╚': '╩', '╝': '╩', '╦': '╦', '╩': '╩', '╣': '╬', '╠': '╬', '╬': '╬', ' ': '═'},
+        '║': {'║': '║', '═': '╬', '╗': '╣', '╔': '╠', '╚': '╠', '╝': '╣', '╦': '╬', '╩': '╬', '╣': '╣', '╠': '╠', '╬': '╬', ' ': '║'},
+        '╗': {'╗': '╗', '═': '╦', '║': '╣', '╔': '╦', '╚': '╬', '╝': '╣', '╦': '╦', '╩': '╬', '╣': '╣', '╠': '╬', '╬': '╬', ' ': '╗'},
+        '╔': {'╔': '╔', '═': '╦', '║': '╠', '╗': '╦', '╚': '╠', '╝': '╬', '╦': '╦', '╩': '╬', '╣': '╬', '╠': '╠', '╬': '╬', ' ': '╔'},
+        '╚': {'╚': '╚', '═': '╩', '║': '╠', '╗': '╬', '╔': '╠', '╝': '╬', '╦': '╬', '╩': '╬', '╣': '╬', '╠': '╠', '╬': '╬', ' ': '╚'},
+        '╝': {'╝': '╝', '═': '╩', '║': '╣', '╗': '╣', '╔': '╬', '╚': '╩', '╦': '╬', '╩': '╩', '╣': '╣', '╠': '╬', '╬': '╬', ' ': '╝'},
+        '╦': {'╦': '╦', '═': '╦', '║': '╬', '╗': '╦', '╔': '╦', '╚': '╬', '╝': '╬', '╩': '╬', '╣': '╬', '╠': '╬', '╬': '╬', ' ': '╦'},
+        '╩': {'╩': '╩', '═': '╩', '║': '╬', '╗': '╬', '╔': '╬', '╚': '╩', '╝': '╩', '╦': '╬', '╣': '╬', '╠': '╬', '╬': '╬', ' ': '╩'},
+        '╣': {'╣': '╣', '═': '╬', '║': '╣', '╗': '╣', '╔': '╬', '╚': '╬', '╝': '╣', '╦': '╬', '╩': '╬', '╠': '╬', '╬': '╬', ' ': '╣'},
+        '╠': {'╠': '╠', '═': '╬', '║': '╠', '╗': '╬', '╔': '╠', '╚': '╠', '╝': '╬', '╦': '╬', '╩': '╬', '╣': '╬', '╬': '╬', ' ': '╠'},
+        '╬': {'╬': '╬', '═': '╬', '║': '╬', '╗': '╬', '╔': '╬', '╚': '╬', '╝': '╬', '╦': '╬', '╩': '╬', '╣': '╬', '╬': '╬', ' ': '╬'},
+        ' ': {'═': '═', '║': '║', '╗': '╗', '╔': '╔', '╚': '╚', '╝': '╝', '╦': '╦', '╩': '╩', '╣': '╣', '╠': '╠', '╬': '╬', ' ': ' '}
     }
 
-    def __init__(self, symbol: LINE_SYMBOLS) -> None:
+    def __init__(self, symbol: str) -> None:
         self.symbol = symbol
         if self.symbol is LINE_SYMBOLS:
             self.symbol = symbol.value
 
     def __add__(self, other) -> str:
-        other: str = other.value if other is LINE_SYMBOLS else other
+        other: str = other.symbol if type(other) == Symbol else other
         return self.ADDITION_TABLE[self.symbol][other]
         
 
@@ -61,6 +62,8 @@ class LineTransition:
 
     nb_source_points: int
     nb_target_points: int
+
+    width: int
 
     # This dictionary stores in key the id of the source_point and in value
     # the list of points where it is headed to.
@@ -92,6 +95,7 @@ class LineTransition:
         """
             Generate the transition_dict for the transition between list_of_sources' generation and list_of_sources' generation + 1.
         """
+        self.is_downward = False
         self.nb_source_points = len(list_of_sources)
         self.transition_dict = {}
 
@@ -117,6 +121,7 @@ class LineTransition:
         """
             Generate the transition_dict for the transition between list_of_sources' generation and list_of_sources' generation - 1.
         """
+        self.is_downward = True
         self.nb_source_points = len(list_of_sources)
         self.transition_dict = {}
 
@@ -124,7 +129,6 @@ class LineTransition:
 
         for i, source_indi in enumerate(list_of_sources):
             self.transition_dict[i] = []
-            
             for child in source_indi.children:
                 if child not in list_of_targets: list_of_targets.append(child)
                 self.transition_dict[i] += [list_of_targets.index(child)]
@@ -134,7 +138,7 @@ class LineTransition:
 
 
 
-    def draw_lines_upward(self, lines: int = 5) -> str:
+    def draw_lines_upward(self, nb_lines: int = 5) -> str:
         """Returns a string representing lines going from nb_source_points and going to nb_target_points.
 
         The graphic will be upward, so the source_points will be at the end of the string (last line), and
@@ -148,9 +152,9 @@ class LineTransition:
         target_points_position: list[int] = self.get_spaced_points(self.nb_target_points, self.width)
         
         # the lines are represented as lists of characters, because strings can't be modified
-        lines: list[list[str]] = [[" "] * self.width for _ in range(lines)]
+        lines: list[list[str]] = [[" "] * self.width for _ in range(nb_lines)]
 
-        horizontal_lvl: int = lines // 2   # The line where the graphic will draw horizontal lines.
+        horizontal_lvl: int = nb_lines // 2   # The line where the graphic will draw horizontal lines.
 
 
         # Draw each lines starting of from a source_point
@@ -199,7 +203,7 @@ class LineTransition:
                 # It should not overlap other characters from the same source_point, as we're drawing
                 # lines from the farest target point to the nearest.
                 if direction != 0:
-                    for j in range(source_point + direction, target_point - direction, direction):
+                    for j in range(source_point + direction, target_point, direction):
                         lines[horizontal_lvl][j] = LINE_SYMBOLS.HOR.value
 
 
@@ -207,20 +211,26 @@ class LineTransition:
                 previous_symbol = lines[horizontal_lvl][target_point]
                 symbol_to_add = ' '
 
-                if direction == 1: symbol_to_add == LINE_SYMBOLS.DIAG_L_B.value
-                elif direction == -1: symbol_to_add == LINE_SYMBOLS.DIAG_R_B.value
+                if direction == 1: symbol_to_add = LINE_SYMBOLS.DIAG_L_B.value
+                elif direction == -1: symbol_to_add = LINE_SYMBOLS.DIAG_R_B.value
 
                 lines[horizontal_lvl][target_point] = Symbol(previous_symbol) + Symbol(symbol_to_add)
 
                 # Draw the vertical line to finish it
                 # Draw the vertical line up to horizontal_lvl - 1
-                for lvl in range(horizontal_lvl + 1, lines):
+                for lvl in range(horizontal_lvl + 1, nb_lines):
                     lines[lvl][target_point] = LINE_SYMBOLS.VER.value
 
 
         
         # Reverse the line list
         lines.reverse()
+        lines = [''.join(line) for line in lines]
+        
+        # Check if the graph is empty. If so, return nothing
+        if re.match(r'^[ \n]*$', '\n'.join(lines)):
+            return ''
+
         # Return the lines, as string
         return '\n'.join(lines)
 
@@ -228,7 +238,7 @@ class LineTransition:
 
 
 
-    def draw_lines_downward(self, lines: int = 5) -> str:
+    def draw_lines_downward(self, nb_lines: int = 5) -> str:
         """Returns a string representing lines going from nb_source_points and going to nb_target_points.
 
         The graphic will be downward, so the source_points will be at the top of the string (first line), and
@@ -242,9 +252,9 @@ class LineTransition:
         target_points_position: list[int] = self.get_spaced_points(self.nb_target_points, self.width)
         
         # the lines are represented as lists of characters, because strings can't be modified
-        lines: list[list[str]] = [[" "] * self.width for _ in range(lines)]
+        lines: list[list[str]] = [[" "] * self.width for _ in range(nb_lines)]
 
-        horizontal_lvl: int = lines // 2   # The line where the graphic will draw horizontal lines.
+        horizontal_lvl: int = nb_lines // 2   # The line where the graphic will draw horizontal lines.
 
 
         # Draw each lines starting of from a source_point
@@ -293,7 +303,7 @@ class LineTransition:
                 # It should not overlap other characters from the same source_point, as we're drawing
                 # lines from the farest target point to the nearest.
                 if direction != 0:
-                    for j in range(source_point + direction, target_point - direction, direction):
+                    for j in range(source_point + direction, target_point, direction):
                         lines[horizontal_lvl][j] = LINE_SYMBOLS.HOR.value
 
 
@@ -301,21 +311,29 @@ class LineTransition:
                 previous_symbol = lines[horizontal_lvl][target_point]
                 symbol_to_add = ' '
 
-                if direction == 1: symbol_to_add == LINE_SYMBOLS.DIAG_L.value
-                elif direction == -1: symbol_to_add == LINE_SYMBOLS.DIAG_R.value
+                if direction == 1: symbol_to_add = LINE_SYMBOLS.DIAG_L.value
+                elif direction == -1: symbol_to_add = LINE_SYMBOLS.DIAG_R.value
 
                 lines[horizontal_lvl][target_point] = Symbol(previous_symbol) + Symbol(symbol_to_add)
 
                 # Draw the vertical line to finish it
                 # Draw the vertical line up to horizontal_lvl - 1
-                for lvl in range(horizontal_lvl + 1, lines):
+                for lvl in range(horizontal_lvl + 1, nb_lines):
                     lines[lvl][target_point] = LINE_SYMBOLS.VER.value
 
 
 
+        # Return the lines, as string
         # Note that we don't reverse the string like in draw_lines_upward
+        lines = [''.join(line) for line in lines]
+
+        # Check if the graph is empty. If so, return nothing
+        if re.match(r'^[ \n]*$', '\n'.join(lines)):
+            return ''
+
         # Return the lines, as string
         return '\n'.join(lines)
+
 
             
 
@@ -330,15 +348,6 @@ class GraphicTree:
     """Class used to store and compute data related to the graphic representation in terminal of the genealogical tree.
     """
 
-    root: Individual = None         # Root of the given tree. The root is the person from which the tree is generated.
-    width: int = 0                  # Width of the terminal, in characters
-
-
-
-    def __init__(self, root: Individual) -> None:
-        self.root = root
-
-
     @staticmethod
     def terminal_width() -> int:
         """Return the width of the terminal."""
@@ -346,7 +355,6 @@ class GraphicTree:
 
         try: return os.get_terminal_size().columns
         except: return DEFAULT_WIDTH
-
 
 
 
@@ -376,7 +384,6 @@ class GraphicTree:
 
 
 
-
     @staticmethod
     def name_line(names: 'list[dict]', width: int, centers: 'list[int]') -> str:
         """Return a 2 line string displaying firstname and lastname
@@ -391,7 +398,15 @@ class GraphicTree:
             first_names.append(n['top'])
             last_names.append(n['bottom'])
 
-        return Individual.words_line(first_names, width, centers) + '\n' + Individual.words_line(last_names, width, centers)
+        res: str = GraphicTree.words_line(first_names, width, centers) + '\n' + GraphicTree.words_line(last_names, width, centers)
+
+        # Check if the graph is empty. If so, return nothing
+        is_empty: bool = True
+        for line in res.split('\n'):
+            if re.match(r'^ *$', line) is None:
+                is_empty = False
+
+        return res if not is_empty else ''
 
 
 
@@ -399,12 +414,61 @@ class GraphicTree:
 
 
 
-    def draw(self, depth: int = 2) -> str:
+    def draw(self, root: Individual, depth: int = 2) -> str:
         """Return a string representing a graphic tree starting from the root and up to the depth generation.
 
         If depth > 0, it will represent the ancestors of the root.
         If depth < 0, it will represent the descendants of the root.
         """
+        width: int = self.terminal_width()
+        
+        lines: list[str] = []
 
-        # TODO
-        pass
+        # If upward
+        if depth >= 0:
+            for d in range(0, depth + 1):
+                # Compute the individuals and the centers of this name line
+                individuals_list: list[Individual] = root.get_ancestors(d)
+                centers: list[int] = LineTransition.get_spaced_points(len(individuals_list), width)
+
+                # Generate the name line
+                names: list[dict] = [indi.get_name_disposition() for indi in individuals_list]
+
+                lines.append(self.name_line(names, width, centers))
+
+                if d < depth:
+                    # Generate the LineTransition only if there is still a name line on top
+                    line_transition: LineTransition = LineTransition()
+                    line_transition.width = width
+                    line_transition.generate_parent_transition(individuals_list)
+                    lines.append(line_transition.draw_lines_upward())
+
+
+            # Draw the lines
+            lines.reverse()
+            print('\n'.join(lines))
+
+    
+
+        # If downward
+        elif depth < 0:
+            for d in range(0, depth - 1, -1):
+                # Compute the individuals and the centers of this name line
+                individuals_list: list[Individual] = root.get_descendants(d)
+                centers: list[int] = LineTransition.get_spaced_points(len(individuals_list), width)
+
+                # Generate the name line
+                names: list[dict] = [indi.get_name_disposition() for indi in individuals_list]
+
+                lines.append(self.name_line(names, width, centers))
+
+                if d > depth:
+                    # Generate the LineTransition only if there is still a name line on top
+                    line_transition: LineTransition = LineTransition()
+                    line_transition.width = width
+                    line_transition.generate_child_transition(individuals_list)
+                    lines.append(line_transition.draw_lines_downward())
+
+
+            # Draw the lines without the empty ones
+            print('\n'.join([line for line in lines if line != '']))

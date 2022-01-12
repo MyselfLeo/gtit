@@ -90,7 +90,7 @@ class GEDData:
 
             # Get the children of the item, if any (children are in the hierarchy[key] dict)
             if hierarchy[key] != '':
-                item.children = Item.hierarchy_to_items(hierarchy[key])
+                item.children = GEDData.hierarchy_to_items(hierarchy[key])
 
             items.append(item)
 
@@ -103,16 +103,16 @@ class GEDData:
         """Take the hierarchy and generate the items."""
 
         # Generate the list of items
-        self._items = Item.hierarchy_to_items(hierarchy)
+        self._items = GEDData.hierarchy_to_items(hierarchy)
 
         # Reference the items
         for item in self._items:
             if item.reference != '':
-                self._references[item.reference] = item
+                self._item_references[item.reference] = item
 
         # Link references
         for item in self._items:
-            item.link_references(self._references)
+            item.link_references(self._item_references)
         
         
     
@@ -128,14 +128,17 @@ class GEDData:
                 self._individual_references[f"@I{indi.id}@"] = indi     # Reference this individual in the _individual_references dict
                 self.individuals.append(indi)                           # Add this individual to the list of individuals
         
+
         # For each individual of the list, link the parents and children
         for indi in self.individuals:
-            if indi.father_reference: indi.father = self._individual_references[indi.father_reference]
-            if indi.mother_reference: indi.mother = self._individual_references[indi.mother_reference]
+            if indi.father_reference:
+                indi.father = self._individual_references[indi.father_reference]
+            if indi.mother_reference:
+                indi.mother = self._individual_references[indi.mother_reference]
 
-            for child_reference in indi.child_references:
+            indi.children = []
+            for child_reference in indi.children_references:
                 indi.children.append(self._individual_references[child_reference])
-
 
 
 
@@ -171,20 +174,10 @@ class GEDData:
 
         # Generate the items
         hierarchy: dict = GEDData.divide_into_sub_blocks(file)   
-        self.generate_items(self, hierarchy)
+        self.generate_items(hierarchy)
 
         # Generate the individuals
         self.generate_individuals()
-
-
-
-        
-
-
-
-
-
-
 
 
 
@@ -198,21 +191,19 @@ class GEDData:
 
 
 
-
-
-    def find_individual(self, item_id: str, searched_name: str) -> 'list[Item]':
+    def find_individual(self, searched_name: str) -> 'list[Individual]':
         """Return every individual with the given name."""
 
-        items: 'list[Item]' = self.get_items(item_id)
-        returned_items: 'list[Item]' = []
+        returned_individuals: list = []
 
-        for item in items:
+        for indi in self.individuals:
 
-            # Check both raw name and formatted name
-            if re.search(searched_name, item.get_value('NAME')):
-                returned_items.append(item)
-            elif re.search(searched_name, item.get_value('NAME', True)):
-                returned_items.append(item)
+            # Check some variations of the name
+            if re.search(searched_name, indi._raw_name):
+                returned_individuals.append(indi)
+            elif re.search(searched_name, f"{indi.first_name}  {indi.last_name}"):
+                returned_individuals.append(indi)
+            elif re.search(searched_name, indi.get_cleared_raw_name()):
+                returned_individuals.append(indi)
 
-
-        return returned_items
+        return returned_individuals

@@ -61,34 +61,26 @@ def list(ged_data: GEDData, regex: str, remove_artifacts: bool) -> None:
 def tree(ged_data: GEDData, name: str, depth: int, remove_artifacts: bool, downward: bool) -> None:
     """Draw a tree from the GEDData."""
 
-    root: list[Item] = ged_data.find_individual('INDI', name)
+    root: list[Individual] = ged_data.find_individual(name)
 
     if len(root) == 0:
         print("Could not find the individual with the name '" + name + "'.")
         print(f"You can list the individuals with the 'gtit.py list -i {ged_data.filepath}' mode.")
         exit(1)
 
-    root = Individual(root[0])
+    root = root[0]
 
 
     used_depth: int = depth
-    tree: str = ""
+    graphic_tree: GraphicTree = GraphicTree()
 
-    while used_depth >= 0:
-        try:
-            if downward: tree = draw_downward(root, -used_depth, terminal_width()) # -use_depth because use_depth > 0 and draw_downward() needs a negative depth
-            else: tree = draw_upward(root, used_depth, terminal_width())
-            
-            if used_depth != depth:
-                print("[WARN] Could not draw the tree with the specified depth. The tree was drawn with a depth of " + str(used_depth) + ".")
+    
+    #while used_depth >= 0:
+        #try:
+    graphic_tree.draw(root, used_depth)
+            #break
 
-            print('\n\n')
-            print(tree)
-            print('\n\n')
-
-            break
-
-        except: used_depth -= 1
+        #except: used_depth -= 1
 
 
     if used_depth == -1:
