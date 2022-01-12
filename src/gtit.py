@@ -83,10 +83,11 @@ def load_ged_file(path: str) -> GEDData:
 
 
 
+
 def main():
     parser = argparse.ArgumentParser()
     # Add the arguments
-    parser.add_argument("mode", help="The mode of the program. Available modes: " + ", ".join(AVAILABLE_MODES), default="tree")
+    parser.add_argument("mode", help="The mode of the program. Available modes: " + ", ".join(AVAILABLE_MODES))
     parser.add_argument("-n", "--name", help="A Regular expression to filter the name of the individuals.", default=None)
     parser.add_argument("-a", "--removeartifacts", help="Whether the display must remove artifacts in the individual names (like / or _).", default=False, action="store_true")
     parser.add_argument("-d", "--depth", help="The depth of the tree to draw. Must be an integer. Default: 2", type=int, default=2)
