@@ -4,7 +4,7 @@
 VERSION=1.0.0
 
 # Clear files
-rm -r build dist \~
+rm -r build dist package
 
 # Build
 pyinstaller src/gtit.py
