@@ -1,3 +1,5 @@
+#!/bin/python3
+
 import re
 import os
 import argparse
@@ -16,18 +18,20 @@ AVAILABLE_MODES = ["list", "stats", "tree"]
 
 
 
-def list(ged_data: GEDData, regex: str, remove_artifacts: bool) -> None:
+def list(ged_data: GEDData, regex: str) -> None:
     """Print a list of individuals from the GEDData.
     
     TODO: Docstring
     """
+    individual_list: 'list[Individual]'
     
-    # Get a list of every individual
-    individual_list: 'list[Individual]' = ged_data.individuals
+    # Get a list of every individual, with regex or not
+    if regex is not None: individual_list = ged_data.find_individuals(regex)
+    else: individual_list = ged_data.individuals
 
     # Sort the list of individuals by reference id (reference = @I13@, reference id = 13)
     individual_list.sort(key=lambda x: int(x.id))
-
+    
     ged_data.print_individuals_list(individual_list)
 
 
@@ -36,7 +40,7 @@ def list(ged_data: GEDData, regex: str, remove_artifacts: bool) -> None:
 
 
 
-def tree(ged_data: GEDData, name: str, depth: int, remove_artifacts: bool, downward: bool) -> None:
+def tree(ged_data: GEDData, name: str, depth: int) -> None:
     """Draw a tree from the GEDData."""
 
     root: list[Individual] = ged_data.find_individual(name)
@@ -83,14 +87,13 @@ def load_ged_file(path: str) -> GEDData:
 
 
 
+
 def main():
     parser = argparse.ArgumentParser()
     # Add the arguments
-    parser.add_argument("mode", help="The mode of the program. Available modes: " + ", ".join(AVAILABLE_MODES), default="tree")
+    parser.add_argument("mode", help="The mode of the program. Available modes: " + ", ".join(AVAILABLE_MODES))
     parser.add_argument("-n", "--name", help="A Regular expression to filter the name of the individuals.", default=None)
-    parser.add_argument("-a", "--removeartifacts", help="Whether the display must remove artifacts in the individual names (like / or _).", default=False, action="store_true")
-    parser.add_argument("-d", "--depth", help="The depth of the tree to draw. Must be an integer. Default: 2", type=int, default=2)
-    parser.add_argument("--downward", help="Whether to display a downward tree from the root (its children) instead of a upward tree (its parents).", default=False, action="store_true")
+    parser.add_argument("-d", "--depth", help="The depth of the tree to draw. Negative means downward, positive means upward. Must be an integer. Default: 2", type=int, default=2)
     parser.add_argument("path", help="Path to the .GED file")
 
     args = parser.parse_args()
@@ -106,7 +109,7 @@ def main():
     if args.mode == "list":
 
         ged_data: GEDData = load_ged_file(args.path)
-        list(ged_data, args.name, args.removeartifacts)
+        list(ged_data, args.name)
         exit(0)
 
 
@@ -118,7 +121,7 @@ def main():
             exit(1)
 
         ged_data: GEDData = load_ged_file(args.path)
-        tree(ged_data, args.name, args.depth, args.removeartifacts, args.downward)
+        tree(ged_data, args.name, args.depth)
         exit(0)
         
 

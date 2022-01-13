@@ -102,6 +102,7 @@ class GEDData:
     def print_individuals_list(individuals_list: 'list[Individual]') -> None:
         """Print a formatted list of individuals to the terminal"""
         # Sort the list of individuals by reference id (reference = @I13@, reference id = 13)
+        if len(individuals_list) == 0: return
         individuals_list.sort(key=lambda x: int(x.id))
 
         print("%-10s %-50s %-20s" % ("reference", "name", "birth date"))
@@ -212,7 +213,26 @@ class GEDData:
 
 
 
-    def find_individual(self, search: str) -> 'list[Individual]':
+    def find_individuals(self, search: str) -> 'list[Individual]':
+        """Method to find every individuals that match the 'search' regex."""
+
+        returned_individuals: list = []
+
+        for indi in self.individuals:
+            # Check some variations of the name
+            if re.search(search, indi._raw_name):
+                returned_individuals.append(indi)
+            elif re.search(search, f"{indi.first_name}  {indi.last_name}"):
+                returned_individuals.append(indi)
+            elif re.search(search, indi.get_cleared_raw_name()):
+                returned_individuals.append(indi)
+
+        return returned_individuals
+
+
+
+
+    def find_individual(self, search: str) -> Individual:
         """Method to find an individual.
         
         - If search is a number, return the individual with the given id.
@@ -225,17 +245,8 @@ class GEDData:
             search = int(search)
             return self.get_individual(search)
         except:
-            returned_individuals: list = []
-
-            for indi in self.individuals:
-
-                # Check some variations of the name
-                if re.search(search, indi._raw_name):
-                    returned_individuals.append(indi)
-                elif re.search(search, f"{indi.first_name}  {indi.last_name}"):
-                    returned_individuals.append(indi)
-                elif re.search(search, indi.get_cleared_raw_name()):
-                    returned_individuals.append(indi)
+            
+            returned_individuals: list[Individual] = self.find_individuals(search)
 
             if len(returned_individuals) == 0: return None
             if len(returned_individuals) == 1: return returned_individuals[0]

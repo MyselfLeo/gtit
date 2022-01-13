@@ -58,6 +58,9 @@ class LineTransition:
     """
     TODO: Docstring
     """
+
+    DEFAULT_TRANSITION_HEIGHT: int = 5
+
     is_downward: bool
 
     nb_source_points: int
@@ -138,7 +141,7 @@ class LineTransition:
 
 
 
-    def draw_lines_upward(self, nb_lines: int = 5) -> str:
+    def draw_lines_upward(self) -> str:
         """Returns a string representing lines going from nb_source_points and going to nb_target_points.
 
         The graphic will be upward, so the source_points will be at the end of the string (last line), and
@@ -151,11 +154,12 @@ class LineTransition:
         source_points_position: list[int] = self.get_spaced_points(self.nb_source_points, self.width)
         target_points_position: list[int] = self.get_spaced_points(self.nb_target_points, self.width)
         
+        nb_lines: int = self.DEFAULT_TRANSITION_HEIGHT
+
         # the lines are represented as lists of characters, because strings can't be modified
         lines: list[list[str]] = [[" "] * self.width for _ in range(nb_lines)]
 
         horizontal_lvl: int = nb_lines // 2   # The line where the graphic will draw horizontal lines.
-
 
         # Draw each lines starting of from a source_point
 
@@ -165,8 +169,7 @@ class LineTransition:
             targeted_positions: list[int] = self.transition_dict[i]
 
             # Don't draw anything if the source_point has no target
-            if target_points_position == []: continue
-
+            if targeted_positions == []: continue
 
             # Draw the vertical line up to horizontal_lvl - 1
             for lvl in range(horizontal_lvl):
