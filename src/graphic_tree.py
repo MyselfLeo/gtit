@@ -388,12 +388,16 @@ class GraphicTree:
 
 
     @staticmethod
-    def name_line(names: 'list[dict]', width: int, centers: 'list[int]') -> str:
-        """Return a 2 line string displaying firstname and lastname
+    def name_line(individuals: 'list[Individual]', width: int, centers: 'list[int]') -> str:
+        """Return a 3 line string displaying firstname, lastname and birth/death years
         of each person in names, evenly spaced.
         """
+        assert len(individuals) == len(centers), f"The number of individuals {len(individuals)} and the number of centers {len(centers)} must be the same."
 
-        assert len(names) == len(centers), f"The number of names {len(names)} and the number of centers {len(centers)} must be the same."
+        # Generate the name dict
+        names: list[dict] = [indi.get_name_disposition() for indi in individuals]
+        # Generate the years list
+        year_list: list[str] = [indi.get_tree_date_str() for indi in individuals]
 
         first_names: list[str] = []
         last_names: list[str] = []
@@ -401,7 +405,9 @@ class GraphicTree:
             first_names.append(n['top'])
             last_names.append(n['bottom'])
 
-        res: str = GraphicTree.words_line(first_names, width, centers) + '\n' + GraphicTree.words_line(last_names, width, centers)
+        res: str = GraphicTree.words_line(first_names, width, centers)
+        res += '\n' + GraphicTree.words_line(last_names, width, centers)
+        res += '\n' + GraphicTree.words_line(year_list, width, centers)
 
         # Check if the graph is empty. If so, return nothing
         is_empty: bool = True
@@ -434,10 +440,7 @@ class GraphicTree:
                 individuals_list: list[Individual] = root.get_ancestors(d)
                 centers: list[int] = LineTransition.get_spaced_points(len(individuals_list), width)
 
-                # Generate the name line
-                names: list[dict] = [indi.get_name_disposition() for indi in individuals_list]
-
-                lines.append(self.name_line(names, width, centers))
+                lines.append(self.name_line(individuals_list, width, centers))
 
                 if d < depth:
                     # Generate the LineTransition only if there is still a name line on top
@@ -460,10 +463,7 @@ class GraphicTree:
                 individuals_list: list[Individual] = root.get_descendants(d)
                 centers: list[int] = LineTransition.get_spaced_points(len(individuals_list), width)
 
-                # Generate the name line
-                names: list[dict] = [indi.get_name_disposition() for indi in individuals_list]
-
-                lines.append(self.name_line(names, width, centers))
+                lines.append(self.name_line(individuals_list, width, centers))
 
                 if d > depth:
                     # Generate the LineTransition only if there is still a name line on top

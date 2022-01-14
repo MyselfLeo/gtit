@@ -105,9 +105,14 @@ class GEDData:
         if len(individuals_list) == 0: return
         individuals_list.sort(key=lambda x: int(x.id))
 
-        print("%-10s %-50s %-20s" % ("reference", "name", "birth date"))
+        print("%-10s %-50s %-40s %-40s" % ("reference", "name", "birth date", "death date"))
+        print()
+        
         for individual in individuals_list:
-            print("%-10s %-50s %-20s" % (individual.id, individual.get_cleared_raw_name(), individual.birth_date))
+            birth_str: str = individual.birth_date if individual.birth_date is not None else ''
+            death_str: str = individual.death_date if individual.death_date is not None else ''
+
+            print("%-10s %-50s %-40s %-40s" % (individual.id, individual.get_cleared_raw_name(), birth_str, death_str))
         
 
 
