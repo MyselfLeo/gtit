@@ -159,7 +159,7 @@ class Individual:
         res: str = ""
         if self.birth_date: res += str(self.birth_date.year)
         if self.birth_date and self.death_date: res += '-'
-        if self.death_date: res += '✝' + str(self.death_date.year)
+        if self.death_date: res += '†' + str(self.death_date.year)
 
         return res
 
