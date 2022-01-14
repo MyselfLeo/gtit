@@ -1,7 +1,7 @@
 # This file is used to generate a proper object-oriented representation of a genealogical tree.
 # A Genealogical tree is only composed of individuals; each individual has a father and a mother.
 
-import dateutil.parser
+from enum import Enum
 
 from item import Item
 from datetime import date
@@ -11,6 +11,9 @@ class Individual:
     """
     Represent an individual.
     """
+
+
+
     id: int = 0
     generation: int = 0
 
@@ -61,10 +64,9 @@ class Individual:
     
     @staticmethod
     def parse_date(date_str: str) -> date:
-        """Tries to parse the given date (as a string) into the most precise date object possible."""
+        tokens: list[str] = date_str.split(' ')
 
-        # TODO: use convention of GEDCOM
-        return date_str
+
 
 
 
