@@ -1,16 +1,19 @@
 # This file is used to generate a proper object-oriented representation of a genealogical tree.
 # A Genealogical tree is only composed of individuals; each individual has a father and a mother.
 
-import dateutil.parser
+from enum import Enum
 
+from date import Date
 from item import Item
-from datetime import date
 
 
 class Individual:
     """
     Represent an individual.
     """
+
+
+
     id: int = 0
     generation: int = 0
 
@@ -22,10 +25,10 @@ class Individual:
 
     sex: str = None
 
-    birth_date: date = None
+    birth_date: Date = None
     birth_place: str = None
 
-    death_date: date = None
+    death_date: Date = None
     death_place: str = None
 
     # father_reference, mother_reference and children_references are used after the creation of the Individual
@@ -58,15 +61,6 @@ class Individual:
         return firstname, lastname
 
 
-    
-    @staticmethod
-    def parse_date(date_str: str) -> date:
-        """Tries to parse the given date (as a string) into the most precise date object possible."""
-
-        # TODO: use convention of GEDCOM
-        return date_str
-
-
 
 
 
@@ -90,14 +84,13 @@ class Individual:
 
         birth_item: Item = item.get_child('BIRT')
         if birth_item:
-            self.birth_date = Individual.parse_date(birth_item.get_value('DATE'))
+            self.birth_date = Date(birth_item.get_value('DATE'))
             self.birth_place = birth_item.get_value('PLAC')
 
         death_item: Item = item.get_child('DEAT')
         if death_item:
-            self.death_date = Individual.parse_date(death_item.get_value('DATE'))
+            self.death_date = Date(death_item.get_value('DATE'))
             self.death_place = death_item.get_value('PLAC')
-
 
 
         # Look for a family where this individual is the child
@@ -107,7 +100,6 @@ class Individual:
             except: pass
             try: self.mother_reference = family_item.get_child('WIFE').value # Get the reference string to the mother
             except: pass
-
 
 
         # Look for families where this individual is the father or the mother
@@ -155,6 +147,22 @@ class Individual:
             sep: list[str] = self._raw_name.split(' ')
             middle = len(sep) // 2
             return {"top": ' '.join(sep[0:middle]), "bottom": ' '.join(sep[middle:])}
+
+
+
+
+    def get_tree_date_str(self) -> str:
+        """Return a string representing the year of birth and the year of death of this Individual.
+        
+        The returned string will be similar to this:  1920-✝1985
+        """
+        res: str = ""
+        if self.birth_date: res += str(self.birth_date.year)
+        if self.birth_date and self.death_date: res += '-'
+        if self.death_date: res += '†' + str(self.death_date.year)
+
+        return res
+
 
 
 
